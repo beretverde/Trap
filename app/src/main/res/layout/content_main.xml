@@ -55,10 +55,37 @@
         android:layout_height="150dp"
         app:srcCompat="@android:drawable/ic_menu_report_image"
         android:layout_gravity="fill_horizontal"
-        android:layout_marginRight="50dp"
+        android:layout_marginRight="10dp"
          />
         <ImageButton
             android:id="@+id/imageButton2"
+            android:layout_width="150dp"
+            android:layout_height="150dp"
+            app:srcCompat="@android:drawable/ic_menu_report_image"
+            android:layout_gravity="fill_vertical"
+
+            />
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        tools:layout_editor_absoluteY="0dp"
+        tools:layout_editor_absoluteX="8dp"
+        android:layout_gravity="center">
+
+        <ImageButton
+            android:id="@+id/imageButton3"
+            android:layout_width="150dp"
+            android:layout_height="150dp"
+            app:srcCompat="@android:drawable/ic_menu_report_image"
+            android:layout_gravity="fill_horizontal"
+            android:layout_marginRight="10dp"
+            />
+        <ImageButton
+            android:id="@+id/imageButton4"
             android:layout_width="150dp"
             android:layout_height="150dp"
             app:srcCompat="@android:drawable/ic_menu_report_image"
