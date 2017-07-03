@@ -2,7 +2,9 @@ package com.renegade.trap;
 
 import android.content.ActivityNotFoundException;
 import android.content.Intent;
+import android.graphics.Bitmap;
 import android.os.Bundle;
+import android.provider.MediaStore;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.NavigationView;
 import android.support.design.widget.Snackbar;
@@ -16,53 +18,63 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.Spinner;
 import android.widget.Toast;
 
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
 
+    ImageButton img1=null;
+    ImageButton img2=null;
+    ImageButton img3=null;
+    ImageButton img4=null;
+    ImageView imgView=null;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        img1= (ImageButton)findViewById(R.id.imageButton1);
+        img2= (ImageButton)findViewById(R.id.imageButton2);
+        img3= (ImageButton)findViewById(R.id.imageButton3);
+        img4= (ImageButton)findViewById(R.id.imageButton4);
+
+
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-        ImageButton img1= (ImageButton)findViewById(R.id.imageButton1);
-        ImageButton img2= (ImageButton)findViewById(R.id.imageButton2);
-        ImageButton img3= (ImageButton)findViewById(R.id.imageButton3);
-        ImageButton img4= (ImageButton)findViewById(R.id.imageButton4);
+
 
         img1.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Snackbar.make(v, "Image1", Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();
+                imgView=img1;
+                dispatchTakePictureIntent();
             }
         });
 
         img2.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Snackbar.make(v, "Image2", Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();
+                imgView=img2;
+                dispatchTakePictureIntent();
             }
         });
 
         img3.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Snackbar.make(v, "Image3", Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();
+                imgView=img3;
+                dispatchTakePictureIntent();
             }
         });
 
         img4.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Snackbar.make(v, "Image4", Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();
+                imgView=img4;
+                dispatchTakePictureIntent();
             }
         });
 
@@ -71,17 +83,21 @@ public class MainActivity extends AppCompatActivity
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Intent email = new Intent(Intent.ACTION_SEND);
+                Intent email = new Intent(Intent.ACTION_SEND_MULTIPLE);
 //                String uriText = "mailto:" + Uri.encode("tylerjacox@gmail.com") +
 //                        "?subject=" + Uri.encode("renegade oil") +
 //                        "&body=" + Uri.encode("the body of the message");
 //                Uri uri = Uri.parse(uriText);
 //
 //                email.setData(uri);
+
+//                img1.imageV
+
                 email.setType("text/plain");
                 email.putExtra(Intent.EXTRA_EMAIL, new String[] {"tyler@smoothlake.com"});
                 email.putExtra(Intent.EXTRA_SUBJECT, "TEST");
                 email.putExtra(Intent.EXTRA_TEXT, "ths is a test");
+//                email.putExtra(Intent.EXTRA_STREAM, );
                 try {
                     if (email.resolveActivity(getPackageManager()) != null) {
                         startActivity(email);
@@ -169,5 +185,23 @@ public class MainActivity extends AppCompatActivity
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         drawer.closeDrawer(GravityCompat.START);
         return true;
+    }
+
+    static final int REQUEST_IMAGE_CAPTURE = 1;
+
+    private void dispatchTakePictureIntent() {
+        Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+        if (takePictureIntent.resolveActivity(getPackageManager()) != null) {
+            startActivityForResult(takePictureIntent, REQUEST_IMAGE_CAPTURE);
+        }
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (requestCode == REQUEST_IMAGE_CAPTURE && resultCode == RESULT_OK) {
+            Bundle extras = data.getExtras();
+            Bitmap imageBitmap = (Bitmap) extras.get("data");
+            imgView.setImageBitmap(imageBitmap);
+        }
     }
 }
