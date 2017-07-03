@@ -2,10 +2,15 @@ package com.renegade.trap;
 
 import android.content.ActivityNotFoundException;
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.net.Uri;
 import android.os.Bundle;
+import android.os.Environment;
+import android.provider.MediaStore;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.NavigationView;
 import android.support.design.widget.Snackbar;
+import android.support.v4.content.FileProvider;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
@@ -16,53 +21,78 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.Spinner;
 import android.widget.Toast;
 
+import java.io.File;
+import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Date;
+
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
+
+    ImageButton img1=null;
+    ImageButton img2=null;
+    ImageButton img3=null;
+    ImageButton img4=null;
+    ImageView imgView=null;
+    Uri photoUri;
+    Uri photoUri1= null;
+    Uri photoUri2= null;
+    Uri photoUri3= null;
+    Uri photoUri4= null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        img1= (ImageButton)findViewById(R.id.imageButton1);
+        img2= (ImageButton)findViewById(R.id.imageButton2);
+        img3= (ImageButton)findViewById(R.id.imageButton3);
+        img4= (ImageButton)findViewById(R.id.imageButton4);
+
+
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-        ImageButton img1= (ImageButton)findViewById(R.id.imageButton1);
-        ImageButton img2= (ImageButton)findViewById(R.id.imageButton2);
-        ImageButton img3= (ImageButton)findViewById(R.id.imageButton3);
-        ImageButton img4= (ImageButton)findViewById(R.id.imageButton4);
+
 
         img1.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Snackbar.make(v, "Image1", Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();
+                photoUri1 = dispatchTakePictureIntent();
+                photoUri = photoUri1;
+                imgView=img1;
             }
         });
 
         img2.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Snackbar.make(v, "Image2", Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();
+                photoUri2 = dispatchTakePictureIntent();
+                photoUri = photoUri2;
+                imgView=img2;
             }
         });
 
         img3.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Snackbar.make(v, "Image3", Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();
+                photoUri3 = dispatchTakePictureIntent();
+                photoUri = photoUri3;
+                imgView=img3;
             }
         });
 
         img4.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Snackbar.make(v, "Image4", Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();
+                photoUri4 = dispatchTakePictureIntent();
+                photoUri = photoUri4;
+                imgView=img4;
             }
         });
 
@@ -71,17 +101,26 @@ public class MainActivity extends AppCompatActivity
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Intent email = new Intent(Intent.ACTION_SEND);
+                Intent email = new Intent(Intent.ACTION_SEND_MULTIPLE);
 //                String uriText = "mailto:" + Uri.encode("tylerjacox@gmail.com") +
 //                        "?subject=" + Uri.encode("renegade oil") +
 //                        "&body=" + Uri.encode("the body of the message");
 //                Uri uri = Uri.parse(uriText);
 //
 //                email.setData(uri);
+
+//                img1.imageV
+
                 email.setType("text/plain");
                 email.putExtra(Intent.EXTRA_EMAIL, new String[] {"tyler@smoothlake.com"});
                 email.putExtra(Intent.EXTRA_SUBJECT, "TEST");
                 email.putExtra(Intent.EXTRA_TEXT, "ths is a test");
+                ArrayList<Uri> photos = new ArrayList<>();
+                photos.add(photoUri1);
+                photos.add(photoUri2);
+                photos.add(photoUri3);
+                photos.add(photoUri4);
+                email.putExtra(Intent.EXTRA_STREAM, photos);
                 try {
                     if (email.resolveActivity(getPackageManager()) != null) {
                         startActivity(email);
@@ -169,5 +208,62 @@ public class MainActivity extends AppCompatActivity
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         drawer.closeDrawer(GravityCompat.START);
         return true;
+    }
+
+    static final int REQUEST_IMAGE_CAPTURE = 1;
+
+    private Uri dispatchTakePictureIntent() {
+//        Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+//        if (takePictureIntent.resolveActivity(getPackageManager()) != null) {
+//            startActivityForResult(takePictureIntent, REQUEST_IMAGE_CAPTURE);
+//        }
+        Uri photoURI = null;
+        Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+        // Ensure that there's a camera activity to handle the intent
+        if (takePictureIntent.resolveActivity(getPackageManager()) != null) {
+            // Create the File where the photo should go
+            File photoFile = null;
+            try {
+                photoFile = createImageFile();
+            } catch (IOException ex) {
+                // Error occurred while creating the File
+
+            }
+            // Continue only if the File was successfully created
+            if (photoFile != null) {
+                photoURI = FileProvider.getUriForFile(this,
+                        "com.example.android.fileprovider",
+                        photoFile);
+                takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, photoURI);
+                startActivityForResult(takePictureIntent, REQUEST_IMAGE_CAPTURE);
+            }
+        }
+        return photoURI;
+
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (requestCode == REQUEST_IMAGE_CAPTURE && resultCode == RESULT_OK) {
+            imgView.setImageURI(photoUri);
+        }
+    }
+
+
+
+    private File createImageFile() throws IOException {
+        // Create an image file name
+        String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
+        String imageFileName = "JPEG_" + timeStamp + "_";
+        File storageDir = getExternalFilesDir(Environment.DIRECTORY_PICTURES);
+        File image = File.createTempFile(
+                imageFileName,  /* prefix */
+                ".jpg",         /* suffix */
+                storageDir      /* directory */
+        );
+
+        // Save a file: path for use with ACTION_VIEW intents
+//        mCurrentPhotoPath = image.getAbsolutePath();
+        return image;
     }
 }
