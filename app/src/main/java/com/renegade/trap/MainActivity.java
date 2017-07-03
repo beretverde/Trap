@@ -3,11 +3,14 @@ package com.renegade.trap;
 import android.content.ActivityNotFoundException;
 import android.content.Intent;
 import android.graphics.Bitmap;
+import android.net.Uri;
 import android.os.Bundle;
+import android.os.Environment;
 import android.provider.MediaStore;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.NavigationView;
 import android.support.design.widget.Snackbar;
+import android.support.v4.content.FileProvider;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
@@ -22,6 +25,12 @@ import android.widget.ImageView;
 import android.widget.Spinner;
 import android.widget.Toast;
 
+import java.io.File;
+import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Date;
+
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
 
@@ -30,6 +39,11 @@ public class MainActivity extends AppCompatActivity
     ImageButton img3=null;
     ImageButton img4=null;
     ImageView imgView=null;
+    Uri photoUri;
+    Uri photoUri1= null;
+    Uri photoUri2= null;
+    Uri photoUri3= null;
+    Uri photoUri4= null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -49,32 +63,36 @@ public class MainActivity extends AppCompatActivity
         img1.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                photoUri1 = dispatchTakePictureIntent();
+                photoUri = photoUri1;
                 imgView=img1;
-                dispatchTakePictureIntent();
             }
         });
 
         img2.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                photoUri2 = dispatchTakePictureIntent();
+                photoUri = photoUri2;
                 imgView=img2;
-                dispatchTakePictureIntent();
             }
         });
 
         img3.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                photoUri3 = dispatchTakePictureIntent();
+                photoUri = photoUri3;
                 imgView=img3;
-                dispatchTakePictureIntent();
             }
         });
 
         img4.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                photoUri4 = dispatchTakePictureIntent();
+                photoUri = photoUri4;
                 imgView=img4;
-                dispatchTakePictureIntent();
             }
         });
 
@@ -97,7 +115,12 @@ public class MainActivity extends AppCompatActivity
                 email.putExtra(Intent.EXTRA_EMAIL, new String[] {"tyler@smoothlake.com"});
                 email.putExtra(Intent.EXTRA_SUBJECT, "TEST");
                 email.putExtra(Intent.EXTRA_TEXT, "ths is a test");
-//                email.putExtra(Intent.EXTRA_STREAM, );
+                ArrayList<Uri> photos = new ArrayList<>();
+                photos.add(photoUri1);
+                photos.add(photoUri2);
+                photos.add(photoUri3);
+                photos.add(photoUri4);
+                email.putExtra(Intent.EXTRA_STREAM, photos);
                 try {
                     if (email.resolveActivity(getPackageManager()) != null) {
                         startActivity(email);
@@ -189,19 +212,58 @@ public class MainActivity extends AppCompatActivity
 
     static final int REQUEST_IMAGE_CAPTURE = 1;
 
-    private void dispatchTakePictureIntent() {
+    private Uri dispatchTakePictureIntent() {
+//        Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+//        if (takePictureIntent.resolveActivity(getPackageManager()) != null) {
+//            startActivityForResult(takePictureIntent, REQUEST_IMAGE_CAPTURE);
+//        }
+        Uri photoURI = null;
         Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+        // Ensure that there's a camera activity to handle the intent
         if (takePictureIntent.resolveActivity(getPackageManager()) != null) {
-            startActivityForResult(takePictureIntent, REQUEST_IMAGE_CAPTURE);
+            // Create the File where the photo should go
+            File photoFile = null;
+            try {
+                photoFile = createImageFile();
+            } catch (IOException ex) {
+                // Error occurred while creating the File
+
+            }
+            // Continue only if the File was successfully created
+            if (photoFile != null) {
+                photoURI = FileProvider.getUriForFile(this,
+                        "com.example.android.fileprovider",
+                        photoFile);
+                takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, photoURI);
+                startActivityForResult(takePictureIntent, REQUEST_IMAGE_CAPTURE);
+            }
         }
+        return photoURI;
+
     }
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (requestCode == REQUEST_IMAGE_CAPTURE && resultCode == RESULT_OK) {
-            Bundle extras = data.getExtras();
-            Bitmap imageBitmap = (Bitmap) extras.get("data");
-            imgView.setImageBitmap(imageBitmap);
+            imgView.setImageURI(photoUri);
         }
+    }
+
+
+
+    private File createImageFile() throws IOException {
+        // Create an image file name
+        String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
+        String imageFileName = "JPEG_" + timeStamp + "_";
+        File storageDir = getExternalFilesDir(Environment.DIRECTORY_PICTURES);
+        File image = File.createTempFile(
+                imageFileName,  /* prefix */
+                ".jpg",         /* suffix */
+                storageDir      /* directory */
+        );
+
+        // Save a file: path for use with ACTION_VIEW intents
+//        mCurrentPhotoPath = image.getAbsolutePath();
+        return image;
     }
 }
