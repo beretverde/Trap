@@ -1,10 +1,11 @@
 package com.renegade.trap;
 
+import android.content.ActivityNotFoundException;
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
-import android.view.View;
 import android.support.design.widget.NavigationView;
+import android.support.design.widget.Snackbar;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
@@ -12,9 +13,11 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.ImageButton;
 import android.widget.Spinner;
+import android.widget.Toast;
 
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
@@ -68,6 +71,25 @@ public class MainActivity extends AppCompatActivity
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                Intent email = new Intent(Intent.ACTION_SEND);
+//                String uriText = "mailto:" + Uri.encode("tylerjacox@gmail.com") +
+//                        "?subject=" + Uri.encode("renegade oil") +
+//                        "&body=" + Uri.encode("the body of the message");
+//                Uri uri = Uri.parse(uriText);
+//
+//                email.setData(uri);
+                email.setType("text/plain");
+                email.putExtra(Intent.EXTRA_EMAIL, new String[] {"tyler@smoothlake.com"});
+                email.putExtra(Intent.EXTRA_SUBJECT, "TEST");
+                email.putExtra(Intent.EXTRA_TEXT, "ths is a test");
+                try {
+                    if (email.resolveActivity(getPackageManager()) != null) {
+                        startActivity(email);
+                    }
+//                    startActivity(Intent.createChooser(email, "Email:"));
+                } catch (ActivityNotFoundException ex) {
+                    Toast.makeText(getApplicationContext(), "There are no email clients installed.", Toast.LENGTH_LONG).show();
+                }
                 Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
                         .setAction("Action", null).show();
             }
