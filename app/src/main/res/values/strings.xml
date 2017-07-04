@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Trap</string>
+    <string name="app_name">Renegade Oil, INC.</string>
 
     <string name="navigation_drawer_open">Open navigation drawer</string>
     <string name="navigation_drawer_close">Close navigation drawer</string>
@@ -8,14 +8,88 @@
     <string name="work_order">Work Order #</string>
     <string name="location_name">Location Name</string>
     <string-array name="cities_array">
-        <item>Mercury</item>
-        <item>Venus</item>
-        <item>Earth</item>
-        <item>Mars</item>
-        <item>Jupiter</item>
-        <item>Saturn</item>
-        <item>Uranus</item>
+        <item>American Fork</item>
+        <item>Beaver</item>
+        <item>Bountiful</item>
+        <item>Brigham City</item>
+        <item>Brighton</item>
+        <item>Cedar City</item>
+        <item>Cedar Hills</item>
+        <item>Centerville</item>
+        <item>Clearfield</item>
+        <item>Clinton</item>
+        <item>Cottonwood Heights</item>
+        <item>Draper</item>
+        <item>Eagle Mountain</item>
+        <item>Erda</item>
+        <item>Evanston</item>
+        <item>Farmington</item>
+        <item>Farr West</item>
+        <item>Grantsville</item>
+        <item>HAFB</item>\
+        <item>Harrisville</item>
+        <item>Heber City</item>
+        <item>Herriman</item>
+        <item>Highland</item>
+        <item>Holladay</item>
+        <item>Hurricane</item>
+        <item>Kamas</item>
+        <item>Kaysville</item>
+        <item>Kearns</item>
+        <item>Lake Point</item>
+        <item>Layton</item>
+        <item>Lehi</item>
+        <item>Lindon</item>
+        <item>Logan</item>
+        <item>Magna</item>
+        <item>Midvale</item>
+        <item>Moab</item>
+        <item>Murray</item>
         <item>Neptune</item>
+        <item>Nehpi</item>
+        <item>North Ogden</item>
+        <item>North Salt Lake</item>
+        <item>Oakley</item>
+        <item>Ogden</item>
+        <item>Orem</item>
+        <item>Park City</item>
+        <item>Payson</item>
+        <item>Pleasant Grove</item>
+        <item>Provo</item>
+        <item>Mesquite</item>
+        <item>Riverdale</item>
+        <item>Riverton</item>
+        <item>Rock Springs</item>
+        <item>Roosevelt</item>
+        <item>Roy</item>
+        <item>SLC</item>
+        <item>Sandy</item>
+        <item>Salem</item>
+        <item>Santaquin</item>
+        <item>Santa Clara</item>
+        <item>St. George</item>
+        <item>Saratoga Springs</item>
+        <item>Smithfield</item>
+        <item>South Jordan</item>
+        <item>South Ogden</item>
+        <item>Spanish Fork</item>
+        <item>Springville</item>
+        <item>Stansbury Park</item>
+        <item>Summit Park</item>
+        <item>Syracuse</item>
+        <item>Taylorsville</item>
+        <item>Toele</item>
+        <item>Tremonton</item>
+        <item>Vineyard</item>
+        <item>WVC</item>
+        <item>Wanship</item>
+        <item>West Jordan</item>
+        <item>West Bountiful</item>
+        <item>West Haven</item>
+        <item>West Point</item>
+        <item>Willard</item>
+        <item>Woods Cross</item>
+        <item>Washington</item>
     </string-array>
 
 </resources>
