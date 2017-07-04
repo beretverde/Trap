@@ -3,6 +3,7 @@ package com.renegade.trap;
 import android.content.ActivityNotFoundException;
 import android.content.Intent;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
@@ -16,6 +17,7 @@ import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -26,6 +28,7 @@ import android.widget.Spinner;
 import android.widget.Toast;
 
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -44,6 +47,7 @@ public class MainActivity extends AppCompatActivity
     Uri photoUri2= null;
     Uri photoUri3= null;
     Uri photoUri4= null;
+    File photoFile=null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -222,7 +226,8 @@ public class MainActivity extends AppCompatActivity
         // Ensure that there's a camera activity to handle the intent
         if (takePictureIntent.resolveActivity(getPackageManager()) != null) {
             // Create the File where the photo should go
-            File photoFile = null;
+
+            photoFile = null;
             try {
                 photoFile = createImageFile();
             } catch (IOException ex) {
@@ -245,7 +250,8 @@ public class MainActivity extends AppCompatActivity
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (requestCode == REQUEST_IMAGE_CAPTURE && resultCode == RESULT_OK) {
-            imgView.setImageURI(photoUri);
+            imgView.setImageBitmap(decodeSampledBitmapFromFile(photoFile.getAbsoluteFile(), 400, 300));
+//            imgView.setImageURI(photoUri);
         }
     }
 
@@ -266,4 +272,59 @@ public class MainActivity extends AppCompatActivity
 //        mCurrentPhotoPath = image.getAbsolutePath();
         return image;
     }
+    public static Bitmap decodeSampledBitmapFromFile(File file,
+                                                     int reqWidth, int reqHeight) {
+
+        // First decode with inJustDecodeBounds=true to check dimensions
+        final BitmapFactory.Options options = new BitmapFactory.Options();
+        options.inJustDecodeBounds = true;
+        BitmapFactory.decodeFile(file.getPath(), options);
+
+        // Calculate inSampleSize
+        options.inSampleSize = calculateInSampleSize(options, reqWidth, reqHeight);
+
+        // Decode bitmap with inSampleSize set
+        options.inJustDecodeBounds = false;
+        return BitmapFactory.decodeFile(file.getPath(), options);
+    }
+    public static int calculateInSampleSize(
+            BitmapFactory.Options options, int reqWidth, int reqHeight) {
+        // Raw height and width of image
+        final int height = options.outHeight;
+        final int width = options.outWidth;
+        int inSampleSize = 1;
+
+        if (height > reqHeight || width > reqWidth) {
+
+            final int halfHeight = height / 2;
+            final int halfWidth = width / 2;
+
+            // Calculate the largest inSampleSize value that is a power of 2 and keeps both
+            // height and width larger than the requested height and width.
+            while ((halfHeight / inSampleSize) >= reqHeight
+                    && (halfWidth / inSampleSize) >= reqWidth) {
+                inSampleSize *= 2;
+            }
+        }
+
+        return inSampleSize;
+    }
+    public static boolean saveBitmap(Bitmap original, Bitmap.CompressFormat format, int quality, File outFile)
+    {
+        if(original == null)
+            return false;
+
+        try {
+            FileOutputStream out = new FileOutputStream(outFile);
+            boolean result = original.compress(format, quality, out);
+            out.flush();
+            out.close();
+            return result;
+        }
+        catch(Exception e) {
+            Log.d("saveBitmap", e.getMessage(), e);
+        }
+        return false;
+    }
+
 }
