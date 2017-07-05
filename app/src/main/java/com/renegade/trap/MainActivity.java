@@ -49,6 +49,9 @@ public class MainActivity extends AppCompatActivity
     Uri photoUri3= null;
     Uri photoUri4= null;
     File photoFile=null;
+    int place;
+    int targetW = 0;
+    int targetH = 0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -64,13 +67,15 @@ public class MainActivity extends AppCompatActivity
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
+        targetW = 180;
+        targetH = 180;
 
 
         img1.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                photoUri1 = dispatchTakePictureIntent();
-                photoUri = photoUri1;
+                place = 1;
+                capturePhoto();
                 imgView=img1;
             }
         });
@@ -78,8 +83,8 @@ public class MainActivity extends AppCompatActivity
         img2.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                photoUri2 = dispatchTakePictureIntent();
-                photoUri = photoUri2;
+                place = 2;
+                capturePhoto();
                 imgView=img2;
             }
         });
@@ -87,8 +92,8 @@ public class MainActivity extends AppCompatActivity
         img3.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                photoUri3 = dispatchTakePictureIntent();
-                photoUri = photoUri3;
+                place = 3;
+                capturePhoto();
                 imgView=img3;
             }
         });
@@ -96,8 +101,8 @@ public class MainActivity extends AppCompatActivity
         img4.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                photoUri4 = dispatchTakePictureIntent();
-                photoUri = photoUri4;
+                place = 4;
+                capturePhoto();
                 imgView=img4;
             }
         });
@@ -124,10 +129,18 @@ public class MainActivity extends AppCompatActivity
                 email.putExtra(Intent.EXTRA_SUBJECT, "T");
                 email.putExtra(Intent.EXTRA_TEXT, "T");
                 ArrayList<Uri> photos = new ArrayList<>();
-                photos.add(photoUri1);
-                photos.add(photoUri2);
-                photos.add(photoUri3);
-                photos.add(photoUri4);
+                if (photoUri1 != null) {
+                    photos.add(photoUri1);
+                }
+                if (photoUri2 != null) {
+                    photos.add(photoUri2);
+                }
+                if (photoUri3  != null) {
+                    photos.add(photoUri3);
+                }
+                if (photoUri4 != null) {
+                    photos.add(photoUri4);
+                }
                 email.putExtra(Intent.EXTRA_STREAM, photos);
                 try {
                     if (email.resolveActivity(getPackageManager()) != null) {
@@ -220,45 +233,44 @@ public class MainActivity extends AppCompatActivity
 
     static final int REQUEST_IMAGE_CAPTURE = 1;
 
-    private Uri dispatchTakePictureIntent() {
-//        Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-//        if (takePictureIntent.resolveActivity(getPackageManager()) != null) {
-//            startActivityForResult(takePictureIntent, REQUEST_IMAGE_CAPTURE);
-//        }
-        Uri photoURI = null;
-        Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-        // Ensure that there's a camera activity to handle the intent
-        if (takePictureIntent.resolveActivity(getPackageManager()) != null) {
-            // Create the File where the photo should go
-
-            photoFile = null;
-            try {
-                photoFile = createImageFile();
-            } catch (IOException ex) {
-                // Error occurred while creating the File
-
-            }
-            // Continue only if the File was successfully created
-            if (photoFile != null) {
-                photoURI = FileProvider.getUriForFile(this,
-                        "com.example.android.fileprovider",
-                        photoFile);
-                takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, photoURI);
-                startActivityForResult(takePictureIntent, REQUEST_IMAGE_CAPTURE);
-            }
+    public void capturePhoto()  {
+        Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+        if (intent.resolveActivity(getPackageManager()) != null) {
+            startActivityForResult(intent, REQUEST_IMAGE_CAPTURE);
         }
-        return photoURI;
-
     }
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (requestCode == REQUEST_IMAGE_CAPTURE && resultCode == RESULT_OK) {
-            imgView.setImageBitmap(decodeSampledBitmapFromFile(photoFile.getAbsoluteFile(), 400, 300));
+            Uri file = data.getData();
+            Bitmap thumbnail = data.getParcelableExtra("data");
+            Bitmap scaled = Bitmap.createScaledBitmap(thumbnail, targetH, targetW, true);
+            imgView.setImageBitmap(scaled);
+            saveUri(file);
+//            imgView.setImageURI(file);
+
+//            imgView.setImageBitmap(decodeSampledBitmapFromFile(photoFile.getAbsoluteFile(), 400, 300));
 //            imgView.setImageURI(photoUri);
         }
     }
 
+    protected void saveUri(Uri uri) {
+        switch(place) {
+            case 1:
+                photoUri1 = uri;
+                break;
+            case 2:
+                photoUri2 = uri;
+                break;
+            case 3:
+                photoUri3 = uri;
+                break;
+            case 4:
+                photoUri4 = uri;
+                break;
+        }
+    }
 
 
     private File createImageFile() throws IOException {
