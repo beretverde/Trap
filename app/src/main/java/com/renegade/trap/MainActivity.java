@@ -38,6 +38,9 @@ import java.util.Date;
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
     TextInputEditText workOrderId =null;
+    TextInputEditText locationName =null;
+
+    Spinner city = null;
     ImageButton img1=null;
     ImageButton img2=null;
     ImageButton img3=null;
@@ -61,7 +64,9 @@ public class MainActivity extends AppCompatActivity
         img2= (ImageButton)findViewById(R.id.imageButton2);
         img3= (ImageButton)findViewById(R.id.imageButton3);
         img4= (ImageButton)findViewById(R.id.imageButton4);
-        workOrderId=(TextInputEditText)findViewById((R.id.work_order_id));
+        workOrderId=(TextInputEditText)findViewById(R.id.work_order_id);
+        locationName=(TextInputEditText)findViewById(R.id.locationName);
+        city=(Spinner)findViewById(R.id.spinner);
 
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
@@ -122,12 +127,18 @@ public class MainActivity extends AppCompatActivity
 
 //                img1.imageV
 
-                String subject =workOrderId.getText().toString();
+                String workId =workOrderId.getText().toString();
+
+                String cityName= city.getSelectedItem().toString();
+
+                String locName = locationName.getText().toString();
+
+
 
                 email.setType("text/plain");
                 email.putExtra(Intent.EXTRA_EMAIL, new String[] {"gary@renegadeoil.net"});
-                email.putExtra(Intent.EXTRA_SUBJECT, "T");
-                email.putExtra(Intent.EXTRA_TEXT, "T");
+                email.putExtra(Intent.EXTRA_SUBJECT, locName+", "+cityName+", #"+workId);
+/*                email.putExtra(Intent.EXTRA_TEXT, "Default Template");*/
                 ArrayList<Uri> photos = new ArrayList<>();
                 if (photoUri1 != null) {
                     photos.add(photoUri1);
