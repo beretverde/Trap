@@ -11,6 +11,7 @@ import android.provider.MediaStore;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.NavigationView;
 import android.support.design.widget.Snackbar;
+import android.support.design.widget.TextInputEditText;
 import android.support.v4.content.FileProvider;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
@@ -36,7 +37,7 @@ import java.util.Date;
 
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
-
+    TextInputEditText workOrderId =null;
     ImageButton img1=null;
     ImageButton img2=null;
     ImageButton img3=null;
@@ -57,6 +58,7 @@ public class MainActivity extends AppCompatActivity
         img2= (ImageButton)findViewById(R.id.imageButton2);
         img3= (ImageButton)findViewById(R.id.imageButton3);
         img4= (ImageButton)findViewById(R.id.imageButton4);
+        workOrderId=(TextInputEditText)findViewById((R.id.work_order_id));
 
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
@@ -115,10 +117,12 @@ public class MainActivity extends AppCompatActivity
 
 //                img1.imageV
 
+                String subject =workOrderId.getText().toString();
+
                 email.setType("text/plain");
-                email.putExtra(Intent.EXTRA_EMAIL, new String[] {"tyler@smoothlake.com"});
-                email.putExtra(Intent.EXTRA_SUBJECT, "TEST");
-                email.putExtra(Intent.EXTRA_TEXT, "ths is a test");
+                email.putExtra(Intent.EXTRA_EMAIL, new String[] {"gary@renegadeoil.net"});
+                email.putExtra(Intent.EXTRA_SUBJECT, "T");
+                email.putExtra(Intent.EXTRA_TEXT, "T");
                 ArrayList<Uri> photos = new ArrayList<>();
                 photos.add(photoUri1);
                 photos.add(photoUri2);

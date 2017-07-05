@@ -34,6 +34,7 @@
             android:layout_height="wrap_content"
             android:hint="@string/work_order"
             android:inputType="number"
+            android:id="@+id/work_order_id"
 
             />
 
@@ -56,13 +57,13 @@
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:text="Picture 1 Title"
+                android:text="Trap 1"
                 android:textAlignment="center"/>
 
             <ImageButton
                 android:id="@+id/imageButton1"
-                android:layout_width="120dp"
-                android:layout_height="120dp"
+                android:layout_width="70dp"
+                android:layout_height="70dp"
                 app:srcCompat="@android:drawable/ic_menu_report_image"
                 android:layout_gravity="fill_horizontal"
                 android:layout_marginRight="10dp"
@@ -77,13 +78,13 @@
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:text="Picture 2 Title"
+                android:text="Trap 2"
                 android:textAlignment="center"/>
 
             <ImageButton
                 android:id="@+id/imageButton2"
-                android:layout_width="120dp"
-                android:layout_height="120dp"
+                android:layout_width="70dp"
+                android:layout_height="70dp"
                 app:srcCompat="@android:drawable/ic_menu_report_image"
                 android:layout_gravity="fill_vertical"
 
@@ -109,13 +110,13 @@
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:text="Picture 3 Title"
+                android:text="Tester"
                 android:textAlignment="center"/>
 
             <ImageButton
                 android:id="@+id/imageButton3"
-                android:layout_width="120dp"
-                android:layout_height="120dp"
+                android:layout_width="70dp"
+                android:layout_height="70dp"
                 app:srcCompat="@android:drawable/ic_menu_report_image"
                 android:layout_gravity="fill_horizontal"
                 android:layout_marginRight="10dp"
@@ -129,13 +130,13 @@
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:text="Picture 4 Title"
+                android:text="Work Order"
                 android:textAlignment="center"/>
 
             <ImageButton
                 android:id="@+id/imageButton4"
-                android:layout_width="120dp"
-                android:layout_height="120dp"
+                android:layout_width="70dp"
+                android:layout_height="70dp"
                 app:srcCompat="@android:drawable/ic_menu_report_image"
                 android:layout_gravity="fill_vertical"
 
@@ -168,7 +169,9 @@
         tools:layout_editor_absoluteY="0dp"
         tools:layout_editor_absoluteX="0dp"
         android:layout_weight="0.00"
-        android:layout_marginTop="20dp"/>
+        android:layout_marginTop="20dp"
+        android:background="@null"
+        />
 
 
     </LinearLayout>
