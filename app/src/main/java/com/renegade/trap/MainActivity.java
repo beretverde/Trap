@@ -4,6 +4,7 @@ import android.content.ActivityNotFoundException;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.drawable.BitmapDrawable;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
@@ -55,6 +56,10 @@ public class MainActivity extends AppCompatActivity
     int targetW = 0;
     int targetH = 0;
 
+    Boolean myBoolean = null;
+    Double myDouble = null;
+    int myInt;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -74,6 +79,20 @@ public class MainActivity extends AppCompatActivity
         targetW = 180;
         targetH = 180;
 
+        if (savedInstanceState != null) {
+            Bitmap image1 = (Bitmap) savedInstanceState.getParcelable("bitmap1");
+            img1.setImageBitmap(image1);
+            Bitmap image2 = (Bitmap) savedInstanceState.getParcelable("bitmap2");
+            img2.setImageBitmap(image2);
+            Bitmap image3 = (Bitmap) savedInstanceState.getParcelable("bitmap3");
+            img3.setImageBitmap(image3);
+            Bitmap image4 = (Bitmap) savedInstanceState.getParcelable("bitmap4");
+            img4.setImageBitmap(image4);
+            photoUri1 = (Uri)savedInstanceState.getParcelable("photoUri1");
+            photoUri2 = (Uri)savedInstanceState.getParcelable("photoUri2");
+            photoUri3 = (Uri)savedInstanceState.getParcelable("photoUri3");
+            photoUri4 = (Uri)savedInstanceState.getParcelable("photoUri4");
+        }
 
         img1.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -117,14 +136,6 @@ public class MainActivity extends AppCompatActivity
             @Override
             public void onClick(View view) {
                 Intent email = new Intent(Intent.ACTION_SEND_MULTIPLE);
-//                String uriText = "mailto:" + Uri.encode("tylerjacox@gmail.com") +
-//                        "?subject=" + Uri.encode("renegade oil") +
-//                        "&body=" + Uri.encode("the body of the message");
-//                Uri uri = Uri.parse(uriText);
-//
-//                email.setData(uri);
-
-//                img1.imageV
 
                 String workId =workOrderId.getText().toString();
 
@@ -249,7 +260,13 @@ public class MainActivity extends AppCompatActivity
             startActivityForResult(intent, REQUEST_IMAGE_CAPTURE);
         }
     }
+    protected void onPause() {
+        super.onPause();
 
+//        SharedPreferences.Editor ed = mPrefs.edit();
+//        ed.putInt("view_mode", mCurViewMode);
+//        ed.commit();
+    }
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (requestCode == REQUEST_IMAGE_CAPTURE && resultCode == RESULT_OK) {
@@ -351,6 +368,38 @@ public class MainActivity extends AppCompatActivity
             Log.d("saveBitmap", e.getMessage(), e);
         }
         return false;
+    }
+    @Override
+    public void onSaveInstanceState(Bundle savedInstanceState) {
+        super.onSaveInstanceState(savedInstanceState);
+        // Save UI state changes to the savedInstanceState.
+        // This bundle will be passed to onCreate if the process is
+        // killed and restarted.
+        if (img1 != null) {
+            Bitmap bitmap1 = ((BitmapDrawable)img1.getDrawable()).getBitmap();
+            savedInstanceState.putParcelable("bitmap1", bitmap1);
+        }
+        if (img2 != null) {
+            Bitmap bitmap2 = ((BitmapDrawable)img2.getDrawable()).getBitmap();
+            savedInstanceState.putParcelable("bitmap2", bitmap2);
+        }
+        if (img3 != null) {
+            Bitmap bitmap3 = ((BitmapDrawable)img3.getDrawable()).getBitmap();
+            savedInstanceState.putParcelable("bitmap3", bitmap3);
+        }
+        if (img4 != null) {
+            Bitmap bitmap4 = ((BitmapDrawable)img4.getDrawable()).getBitmap();
+            savedInstanceState.putParcelable("bitmap4", bitmap4);
+        }
+        savedInstanceState.putParcelable("photoUri1", photoUri1);
+        savedInstanceState.putParcelable("photoUri2", photoUri2);
+        savedInstanceState.putParcelable("photoUri3", photoUri3);
+        savedInstanceState.putParcelable("photoUri4", photoUri4);
+        // etc.
+    }
+    @Override
+    public void onRestoreInstanceState(Bundle savedInstanceState) {
+        super.onRestoreInstanceState(savedInstanceState);
     }
 
 }
