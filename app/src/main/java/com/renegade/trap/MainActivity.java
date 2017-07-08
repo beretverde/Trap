@@ -2,8 +2,10 @@ package com.renegade.trap;
 
 import android.content.ActivityNotFoundException;
 import android.content.Intent;
+import android.content.pm.ActivityInfo;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.drawable.BitmapDrawable;
 import android.graphics.Rect;
 import android.graphics.pdf.PdfDocument;
 import android.net.Uri;
@@ -12,9 +14,7 @@ import android.os.Environment;
 import android.provider.MediaStore;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.NavigationView;
-import android.support.design.widget.Snackbar;
 import android.support.design.widget.TextInputEditText;
-import android.support.v4.content.FileProvider;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
@@ -39,21 +39,22 @@ import java.util.Date;
 
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
+
     TextInputEditText workOrderId =null;
     TextInputEditText locationName =null;
-
     Spinner city = null;
+
     ImageButton img1=null;
     ImageButton img2=null;
     ImageButton img3=null;
     ImageButton img4=null;
     ImageView imgView=null;
-    Uri photoUri;
     Uri photoUri1= null;
     Uri photoUri2= null;
     Uri photoUri3= null;
     Uri photoUri4= null;
-    File photoFile=null;
+
+    // used to place the photo on screen
     int place;
     int targetW = 0;
     int targetH = 0;
@@ -61,6 +62,7 @@ public class MainActivity extends AppCompatActivity
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
         setContentView(R.layout.activity_main);
         img1= (ImageButton)findViewById(R.id.imageButton1);
         img2= (ImageButton)findViewById(R.id.imageButton2);
@@ -77,13 +79,27 @@ public class MainActivity extends AppCompatActivity
         targetW = 180;
         targetH = 180;
 
+        if (savedInstanceState != null) {
+            Bitmap image1 = savedInstanceState.getParcelable("bitmap1");
+            img1.setImageBitmap(image1);
+            Bitmap image2 = savedInstanceState.getParcelable("bitmap2");
+            img2.setImageBitmap(image2);
+            Bitmap image3 = savedInstanceState.getParcelable("bitmap3");
+            img3.setImageBitmap(image3);
+            Bitmap image4 = savedInstanceState.getParcelable("bitmap4");
+            img4.setImageBitmap(image4);
+            photoUri1 = savedInstanceState.getParcelable("photoUri1");
+            photoUri2 = savedInstanceState.getParcelable("photoUri2");
+            photoUri3 = savedInstanceState.getParcelable("photoUri3");
+            photoUri4 = savedInstanceState.getParcelable("photoUri4");
+        }
 
         img1.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 place = 1;
-                capturePhoto();
                 imgView=img1;
+                capturePhoto();
             }
         });
 
@@ -91,8 +107,8 @@ public class MainActivity extends AppCompatActivity
             @Override
             public void onClick(View v) {
                 place = 2;
-                capturePhoto();
                 imgView=img2;
+                capturePhoto();
             }
         });
 
@@ -100,8 +116,8 @@ public class MainActivity extends AppCompatActivity
             @Override
             public void onClick(View v) {
                 place = 3;
-                capturePhoto();
                 imgView=img3;
+                capturePhoto();
             }
         });
 
@@ -109,8 +125,8 @@ public class MainActivity extends AppCompatActivity
             @Override
             public void onClick(View v) {
                 place = 4;
-                capturePhoto();
                 imgView=img4;
+                capturePhoto();
             }
         });
 
@@ -120,14 +136,6 @@ public class MainActivity extends AppCompatActivity
             @Override
             public void onClick(View view) {
                 Intent email = new Intent(Intent.ACTION_SEND_MULTIPLE);
-//                String uriText = "mailto:" + Uri.encode("tylerjacox@gmail.com") +
-//                        "?subject=" + Uri.encode("renegade oil") +
-//                        "&body=" + Uri.encode("the body of the message");
-//                Uri uri = Uri.parse(uriText);
-//
-//                email.setData(uri);
-
-//                img1.imageV
 
                 String workId =workOrderId.getText().toString();
 
@@ -159,7 +167,6 @@ public class MainActivity extends AppCompatActivity
                     if (email.resolveActivity(getPackageManager()) != null) {
                         startActivity(email);
                     }
-//                    startActivity(Intent.createChooser(email, "Email:"));
                 } catch (ActivityNotFoundException ex) {
                     Toast.makeText(getApplicationContext(), "There are no email clients installed.", Toast.LENGTH_LONG).show();
                 }
@@ -202,12 +209,12 @@ public class MainActivity extends AppCompatActivity
         navigationView.setNavigationItemSelectedListener(this);
 
         Spinner spinner = (Spinner) findViewById(R.id.spinner);
-// Create an ArrayAdapter using the string array and a default spinner layout
+        // Create an ArrayAdapter using the string array and a default spinner layout
         ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(this,
                 R.array.cities_array, android.R.layout.simple_spinner_item);
-// Specify the layout to use when the list of choices appears
+        // Specify the layout to use when the list of choices appears
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-// Apply the adapter to the spinner
+        // Apply the adapter to the spinner
         spinner.setAdapter(adapter);
     }
 
@@ -276,7 +283,9 @@ public class MainActivity extends AppCompatActivity
             startActivityForResult(intent, REQUEST_IMAGE_CAPTURE);
         }
     }
-
+    protected void onPause() {
+        super.onPause();
+    }
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (requestCode == REQUEST_IMAGE_CAPTURE && resultCode == RESULT_OK) {
@@ -378,6 +387,38 @@ public class MainActivity extends AppCompatActivity
             Log.d("saveBitmap", e.getMessage(), e);
         }
         return false;
+    }
+    @Override
+    public void onSaveInstanceState(Bundle savedInstanceState) {
+        super.onSaveInstanceState(savedInstanceState);
+        // Save UI state changes to the savedInstanceState.
+        // This bundle will be passed to onCreate if the process is
+        // killed and restarted.
+        if (img1 != null) {
+            Bitmap bitmap1 = ((BitmapDrawable)img1.getDrawable()).getBitmap();
+            savedInstanceState.putParcelable("bitmap1", bitmap1);
+        }
+        if (img2 != null) {
+            Bitmap bitmap2 = ((BitmapDrawable)img2.getDrawable()).getBitmap();
+            savedInstanceState.putParcelable("bitmap2", bitmap2);
+        }
+        if (img3 != null) {
+            Bitmap bitmap3 = ((BitmapDrawable)img3.getDrawable()).getBitmap();
+            savedInstanceState.putParcelable("bitmap3", bitmap3);
+        }
+        if (img4 != null) {
+            Bitmap bitmap4 = ((BitmapDrawable)img4.getDrawable()).getBitmap();
+            savedInstanceState.putParcelable("bitmap4", bitmap4);
+        }
+        savedInstanceState.putParcelable("photoUri1", photoUri1);
+        savedInstanceState.putParcelable("photoUri2", photoUri2);
+        savedInstanceState.putParcelable("photoUri3", photoUri3);
+        savedInstanceState.putParcelable("photoUri4", photoUri4);
+        // etc.
+    }
+    @Override
+    public void onRestoreInstanceState(Bundle savedInstanceState) {
+        super.onRestoreInstanceState(savedInstanceState);
     }
 
 }
