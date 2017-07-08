@@ -2,6 +2,7 @@ package com.renegade.trap;
 
 import android.content.ActivityNotFoundException;
 import android.content.Intent;
+import android.content.pm.ActivityInfo;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.drawable.BitmapDrawable;
@@ -11,7 +12,6 @@ import android.os.Environment;
 import android.provider.MediaStore;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.NavigationView;
-import android.support.design.widget.Snackbar;
 import android.support.design.widget.TextInputEditText;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
@@ -37,32 +37,30 @@ import java.util.Date;
 
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
+
     TextInputEditText workOrderId =null;
     TextInputEditText locationName =null;
-
     Spinner city = null;
+
     ImageButton img1=null;
     ImageButton img2=null;
     ImageButton img3=null;
     ImageButton img4=null;
     ImageView imgView=null;
-    Uri photoUri;
     Uri photoUri1= null;
     Uri photoUri2= null;
     Uri photoUri3= null;
     Uri photoUri4= null;
-    File photoFile=null;
+
+    // used to place the photo on screen
     int place;
     int targetW = 0;
     int targetH = 0;
 
-    Boolean myBoolean = null;
-    Double myDouble = null;
-    int myInt;
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
         setContentView(R.layout.activity_main);
         img1= (ImageButton)findViewById(R.id.imageButton1);
         img2= (ImageButton)findViewById(R.id.imageButton2);
@@ -80,26 +78,26 @@ public class MainActivity extends AppCompatActivity
         targetH = 180;
 
         if (savedInstanceState != null) {
-            Bitmap image1 = (Bitmap) savedInstanceState.getParcelable("bitmap1");
+            Bitmap image1 = savedInstanceState.getParcelable("bitmap1");
             img1.setImageBitmap(image1);
-            Bitmap image2 = (Bitmap) savedInstanceState.getParcelable("bitmap2");
+            Bitmap image2 = savedInstanceState.getParcelable("bitmap2");
             img2.setImageBitmap(image2);
-            Bitmap image3 = (Bitmap) savedInstanceState.getParcelable("bitmap3");
+            Bitmap image3 = savedInstanceState.getParcelable("bitmap3");
             img3.setImageBitmap(image3);
-            Bitmap image4 = (Bitmap) savedInstanceState.getParcelable("bitmap4");
+            Bitmap image4 = savedInstanceState.getParcelable("bitmap4");
             img4.setImageBitmap(image4);
-            photoUri1 = (Uri)savedInstanceState.getParcelable("photoUri1");
-            photoUri2 = (Uri)savedInstanceState.getParcelable("photoUri2");
-            photoUri3 = (Uri)savedInstanceState.getParcelable("photoUri3");
-            photoUri4 = (Uri)savedInstanceState.getParcelable("photoUri4");
+            photoUri1 = savedInstanceState.getParcelable("photoUri1");
+            photoUri2 = savedInstanceState.getParcelable("photoUri2");
+            photoUri3 = savedInstanceState.getParcelable("photoUri3");
+            photoUri4 = savedInstanceState.getParcelable("photoUri4");
         }
 
         img1.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 place = 1;
-                capturePhoto();
                 imgView=img1;
+                capturePhoto();
             }
         });
 
@@ -107,8 +105,8 @@ public class MainActivity extends AppCompatActivity
             @Override
             public void onClick(View v) {
                 place = 2;
-                capturePhoto();
                 imgView=img2;
+                capturePhoto();
             }
         });
 
@@ -116,8 +114,8 @@ public class MainActivity extends AppCompatActivity
             @Override
             public void onClick(View v) {
                 place = 3;
-                capturePhoto();
                 imgView=img3;
+                capturePhoto();
             }
         });
 
@@ -125,8 +123,8 @@ public class MainActivity extends AppCompatActivity
             @Override
             public void onClick(View v) {
                 place = 4;
-                capturePhoto();
                 imgView=img4;
+                capturePhoto();
             }
         });
 
@@ -167,12 +165,11 @@ public class MainActivity extends AppCompatActivity
                     if (email.resolveActivity(getPackageManager()) != null) {
                         startActivity(email);
                     }
-//                    startActivity(Intent.createChooser(email, "Email:"));
                 } catch (ActivityNotFoundException ex) {
                     Toast.makeText(getApplicationContext(), "There are no email clients installed.", Toast.LENGTH_LONG).show();
                 }
-                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();
+//                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
+//                        .setAction("Action", null).show();
             }
         });
 
@@ -186,12 +183,12 @@ public class MainActivity extends AppCompatActivity
         navigationView.setNavigationItemSelectedListener(this);
 
         Spinner spinner = (Spinner) findViewById(R.id.spinner);
-// Create an ArrayAdapter using the string array and a default spinner layout
+        // Create an ArrayAdapter using the string array and a default spinner layout
         ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(this,
                 R.array.cities_array, android.R.layout.simple_spinner_item);
-// Specify the layout to use when the list of choices appears
+        // Specify the layout to use when the list of choices appears
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-// Apply the adapter to the spinner
+        // Apply the adapter to the spinner
         spinner.setAdapter(adapter);
     }
 
@@ -262,10 +259,6 @@ public class MainActivity extends AppCompatActivity
     }
     protected void onPause() {
         super.onPause();
-
-//        SharedPreferences.Editor ed = mPrefs.edit();
-//        ed.putInt("view_mode", mCurViewMode);
-//        ed.commit();
     }
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
