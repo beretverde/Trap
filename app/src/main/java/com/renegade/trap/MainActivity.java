@@ -6,7 +6,6 @@ import android.content.pm.ActivityInfo;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.drawable.BitmapDrawable;
-import android.graphics.Rect;
 import android.graphics.pdf.PdfDocument;
 import android.net.Uri;
 import android.os.Bundle;
@@ -30,10 +29,10 @@ import android.widget.ImageView;
 import android.widget.Spinner;
 import android.widget.Toast;
 
-import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -160,35 +159,26 @@ public class MainActivity extends AppCompatActivity
 
                 // finish the page
                 document.finishPage(page);
-
-                ByteArrayOutputStream os = new ByteArrayOutputStream();
+                File file = null;
                 try {
+                    file = createTempFile();
+                    OutputStream os = new FileOutputStream(file);
                     document.writeTo(os);
                     document.close();
                     os.close();
                 } catch (IOException e) {
-                    throw new RuntimeException("Error generating file", e);
+                    e.printStackTrace();
                 }
 
-
-                // Assuming it may go via eMail:
-
-
-
-
-
-                email.setType("text/html");
+                email.setType("text/pdf");
 
 //                email.setType("text/plain");
                 email.putExtra(Intent.EXTRA_EMAIL, new String[] {"gary@renegadeoil.net"});
                 email.putExtra(Intent.EXTRA_SUBJECT, locName+", "+cityName+", #"+workId);
 /*                email.putExtra(Intent.EXTRA_TEXT, "Default Template");*/
 
-                email.putExtra(
-                        getClass().getPackage().getName() + "." + "SendPDF",
-                        os.toByteArray());
-
                 ArrayList<Uri> photos = new ArrayList<>();
+                photos.add(Uri.fromFile(file));
                 if (photoUri1 != null) {
                     photos.add(photoUri1);
                 }
@@ -337,20 +327,18 @@ public class MainActivity extends AppCompatActivity
     }
 
 
-    private File createImageFile() throws IOException {
+    private File createTempFile() throws IOException {
         // Create an image file name
         String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
-        String imageFileName = "JPEG_" + timeStamp + "_";
+        String fileName = "PDF_" + timeStamp + "_";
         File storageDir = getExternalFilesDir(Environment.DIRECTORY_PICTURES);
-        File image = File.createTempFile(
-                imageFileName,  /* prefix */
-                ".jpg",         /* suffix */
+        File file = File.createTempFile(
+                fileName,  /* prefix */
+                ".pdf",         /* suffix */
                 storageDir      /* directory */
         );
 
-        // Save a file: path for use with ACTION_VIEW intents
-//        mCurrentPhotoPath = image.getAbsolutePath();
-        return image;
+        return file;
     }
     public static Bitmap decodeSampledBitmapFromFile(File file,
                                                      int reqWidth, int reqHeight) {
