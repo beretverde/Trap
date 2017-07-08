@@ -4,6 +4,8 @@ import android.content.ActivityNotFoundException;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Rect;
+import android.graphics.pdf.PdfDocument;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
@@ -163,6 +165,30 @@ public class MainActivity extends AppCompatActivity
                 }
                 Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
                         .setAction("Action", null).show();
+
+                PdfDocument document = new PdfDocument();
+
+                // crate a page description
+                PdfDocument.PageInfo pageInfo = new PdfDocument.PageInfo.Builder(new Rect(0, 0, 100, 100), 1).create();
+
+                // start a page
+                PdfDocument.Page page = document.startPage(pageInfo);
+
+                // draw something on the page
+                View content = city;
+                content.draw(page.getCanvas());
+
+                // finish the page
+                document.finishPage(page);
+ . . .
+                // add more pages
+ . . .
+                // write the document content
+                document.writeTo(getOutputStream());
+
+                // close the document
+                document.close();
+
             }
         });
 
