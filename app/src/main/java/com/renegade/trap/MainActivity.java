@@ -1,14 +1,14 @@
 package com.renegade.trap;
 
+import android.app.ProgressDialog;
 import android.content.ActivityNotFoundException;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.graphics.Canvas;
 import android.graphics.drawable.BitmapDrawable;
-import android.graphics.pdf.PdfDocument;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Environment;
 import android.provider.MediaStore;
@@ -30,10 +30,19 @@ import android.widget.ImageView;
 import android.widget.Spinner;
 import android.widget.Toast;
 
+import com.itextpdf.text.Document;
+import com.itextpdf.text.DocumentException;
+import com.itextpdf.text.Image;
+import com.itextpdf.text.PageSize;
+import com.itextpdf.text.Paragraph;
+import com.itextpdf.text.pdf.PdfWriter;
+
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -139,65 +148,75 @@ public class MainActivity extends AppCompatActivity
                 Intent email = new Intent(Intent.ACTION_SEND_MULTIPLE);
 
                 String workId =workOrderId.getText().toString();
-
+                if (workId.isEmpty()) {
+                    workOrderId.setError("Please enter work order number!");
+                    return;
+                }
                 String cityName= city.getSelectedItem().toString();
-
-                String locName = locationName.getText().toString();
-
-
-
-                PdfDocument document = new PdfDocument();
-
-                // crate a page description
-                PdfDocument.PageInfo pageInfo = new PdfDocument.PageInfo.Builder(300, 300, 1).create();
-
-                // start a page
-                PdfDocument.Page page = document.startPage(pageInfo);
-
-                // draw something on the page
-
-                view.draw(page.getCanvas());
-
-                Canvas canvas = page.getCanvas();
-
-                Bitmap testImage=decodeSampledBitmapFromFile(new File(photoUri1.getPath()),50,50);
-                canvas.drawBitmap(testImage, 50, 50, null);
-
-
-                // finish the page
-                document.finishPage(page);
-                File file = null;
-                try {
-                    file = createTempFile();
-                    OutputStream os = new FileOutputStream(file);
-                    document.writeTo(os);
-                    document.close();
-                    os.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
+                if (cityName.equalsIgnoreCase("Select City")) {
+                    Toast.makeText(getApplicationContext(), "Please select the city!", Toast.LENGTH_LONG).show();
+                    return;
                 }
 
+                String locName = locationName.getText().toString();
+                if (locName.isEmpty()) {
+                    locationName.setError("Please select the location!");
+                    return;
+                }
+
+//                ProgressDialog dialog = new ProgressDialog(MainActivity.this);
+//                dialog.setMessage("Building PDF document");
+//                dialog.show();
+
+                PdfRunner runner = new PdfRunner();
+                runner.execute();
+
+//                PdfDocument document = new PdfDocument();
+                Document document = new Document(PageSize.LETTER);
+                File file = null;
+                OutputStream os;
+                try {
+                    file = createTempFile();
+                    os = new FileOutputStream(file);
+                    PdfWriter.getInstance(document, os);
+                    document.open();
+                    int page = 1;
+                    if (photoUri1 != null) {
+                        document.add(new Paragraph("Trap 1"));
+                        setPdfHeader(workId, cityName, locName, document);
+                        addImageToPage(view, document, photoUri1, page++);
+                    };
+                    if (photoUri2 != null) {
+                        document.newPage();
+                        document.add(new Paragraph("Trap 2"));
+                        setPdfHeader(workId, cityName, locName, document);
+                        addImageToPage(view, document, photoUri2, page++);
+                    };
+                    if (photoUri3 != null) {
+                        document.newPage();
+                        document.add(new Paragraph("Tester"));
+                        setPdfHeader(workId, cityName, locName, document);
+                        addImageToPage(view, document, photoUri3, page++);
+                    };
+                    if (photoUri4 != null) {
+                        document.newPage();
+                        document.add(new Paragraph("Work Order"));
+                        setPdfHeader(workId, cityName, locName, document);
+                        addImageToPage(view, document, photoUri4, page++);
+                    };
+                    document.close();
+
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
                 email.setType("text/pdf");
 
-//                email.setType("text/plain");
-                email.putExtra(Intent.EXTRA_EMAIL, new String[] {"gary@renegadeoil.net"});
+//                email.putExtra(Intent.EXTRA_EMAIL, new String[] {"gary@renegadeoil.net"});
+                email.putExtra(Intent.EXTRA_EMAIL, new String[] {"tylerjacox@gmail.com","brentjacox@gmail.com"});
                 email.putExtra(Intent.EXTRA_SUBJECT, locName+", "+cityName+", #"+workId);
-/*                email.putExtra(Intent.EXTRA_TEXT, "Default Template");*/
 
                 ArrayList<Uri> photos = new ArrayList<>();
                 photos.add(Uri.fromFile(file));
-                if (photoUri1 != null) {
-                    photos.add(photoUri1);
-                }
-                if (photoUri2 != null) {
-                    photos.add(photoUri2);
-                }
-                if (photoUri3  != null) {
-                    photos.add(photoUri3);
-                }
-                if (photoUri4 != null) {
-                    photos.add(photoUri4);
-                }
                 email.putExtra(Intent.EXTRA_STREAM, photos);
                 try {
                     if (email.resolveActivity(getPackageManager()) != null) {
@@ -206,11 +225,6 @@ public class MainActivity extends AppCompatActivity
                 } catch (ActivityNotFoundException ex) {
                     Toast.makeText(getApplicationContext(), "There are no email clients installed.", Toast.LENGTH_LONG).show();
                 }
-//                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-//                        .setAction("Action", null).show();
-
-
-
             }
         });
 
@@ -231,6 +245,54 @@ public class MainActivity extends AppCompatActivity
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         // Apply the adapter to the spinner
         spinner.setAdapter(adapter);
+    }
+
+    private class PdfRunner extends AsyncTask<String, String, String> {
+        private ProgressDialog dialog = new ProgressDialog(MainActivity.this);
+
+        @Override
+        protected void onPreExecute() {
+            this.dialog.setMessage("Building Pdf File");
+            this.dialog.show();
+        }
+
+        @Override
+        protected String doInBackground(String... params) {
+            try {
+                Thread.currentThread().sleep(10000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            return "true";
+        }
+        protected void onPostExecute(String status) {
+            if (dialog.isShowing()) {
+                dialog.dismiss();
+            }
+        }
+
+
+    }
+
+    private void setPdfHeader(String workId, String cityName, String locName, Document document) throws DocumentException {
+        Date date = new Date();
+        DateFormat dateFormat = android.text.format.DateFormat.getDateFormat(getApplicationContext());
+        document.add(new Paragraph("#"+workId+" - "+locName+"/"+cityName+" @"+dateFormat.format(date)));
+    }
+
+    private void addImageToPage(View view, Document document, Uri photo, int pageNumber) {
+        Bitmap bitmap = null;
+        try {
+            bitmap = MediaStore.Images.Media.getBitmap(view.getContext().getContentResolver(),photo);
+            // get input stream
+            ByteArrayOutputStream stream = new ByteArrayOutputStream();
+            bitmap.compress(Bitmap.CompressFormat.JPEG, 100, stream);
+            Image image = Image.getInstance(stream.toByteArray());
+            image.scaleAbsolute(500, 500);
+            document.add(image);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     @Override

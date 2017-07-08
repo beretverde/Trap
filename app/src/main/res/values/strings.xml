@@ -8,6 +8,7 @@
     <string name="work_order">Work Order #</string>
     <string name="location_name">Location Name</string>
     <string-array name="cities_array">
+        <item>Select City</item>
         <item>American Fork</item>
         <item>Beaver</item>
         <item>Bountiful</item>
