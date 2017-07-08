@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Canvas;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.Rect;
 import android.graphics.pdf.PdfDocument;
@@ -157,6 +158,12 @@ public class MainActivity extends AppCompatActivity
                 // draw something on the page
 
                 view.draw(page.getCanvas());
+
+                Canvas canvas = page.getCanvas();
+
+                Bitmap testImage=decodeSampledBitmapFromFile(new File(photoUri1.getPath()),50,50);
+                canvas.drawBitmap(testImage, 50, 50, null);
+
 
                 // finish the page
                 document.finishPage(page);
