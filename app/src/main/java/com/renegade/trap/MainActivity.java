@@ -9,6 +9,7 @@ import android.graphics.BitmapFactory;
 import android.graphics.drawable.BitmapDrawable;
 import android.net.Uri;
 import android.os.AsyncTask;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.provider.MediaStore;
@@ -40,12 +41,15 @@ import com.itextpdf.text.pdf.PdfWriter;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+
+import static android.os.Environment.DIRECTORY_DCIM;
 
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
@@ -85,6 +89,11 @@ public class MainActivity extends AppCompatActivity
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+        if (Build.VERSION.SDK_INT >= 14) {
+            Log.e("-->", "Build: "+Build.VERSION.SDK_INT);
+        } else {
+            Log.e("-->", " < 14");
+        }
 
         targetW = 180;
         targetH = 180;
@@ -168,63 +177,9 @@ public class MainActivity extends AppCompatActivity
 //                dialog.setMessage("Building PDF document");
 //                dialog.show();
 
-                PdfRunner runner = new PdfRunner();
-                runner.execute();
+                sendPdfViaEmail(view, workId, cityName, locName, email);
 
-//                PdfDocument document = new PdfDocument();
-                Document document = new Document(PageSize.LETTER);
-                File file = null;
-                OutputStream os;
-                try {
-                    file = createTempFile();
-                    os = new FileOutputStream(file);
-                    PdfWriter.getInstance(document, os);
-                    document.open();
-                    int page = 1;
-                    if (photoUri1 != null) {
-                        document.add(new Paragraph("Trap 1"));
-                        setPdfHeader(workId, cityName, locName, document);
-                        addImageToPage(view, document, photoUri1, page++);
-                    };
-                    if (photoUri2 != null) {
-                        document.newPage();
-                        document.add(new Paragraph("Trap 2"));
-                        setPdfHeader(workId, cityName, locName, document);
-                        addImageToPage(view, document, photoUri2, page++);
-                    };
-                    if (photoUri3 != null) {
-                        document.newPage();
-                        document.add(new Paragraph("Tester"));
-                        setPdfHeader(workId, cityName, locName, document);
-                        addImageToPage(view, document, photoUri3, page++);
-                    };
-                    if (photoUri4 != null) {
-                        document.newPage();
-                        document.add(new Paragraph("Work Order"));
-                        setPdfHeader(workId, cityName, locName, document);
-                        addImageToPage(view, document, photoUri4, page++);
-                    };
-                    document.close();
 
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-                email.setType("text/pdf");
-
-//                email.putExtra(Intent.EXTRA_EMAIL, new String[] {"gary@renegadeoil.net"});
-                email.putExtra(Intent.EXTRA_EMAIL, new String[] {"tylerjacox@gmail.com","brentjacox@gmail.com"});
-                email.putExtra(Intent.EXTRA_SUBJECT, locName+", "+cityName+", #"+workId);
-
-                ArrayList<Uri> photos = new ArrayList<>();
-                photos.add(Uri.fromFile(file));
-                email.putExtra(Intent.EXTRA_STREAM, photos);
-                try {
-                    if (email.resolveActivity(getPackageManager()) != null) {
-                        startActivity(email);
-                    }
-                } catch (ActivityNotFoundException ex) {
-                    Toast.makeText(getApplicationContext(), "There are no email clients installed.", Toast.LENGTH_LONG).show();
-                }
             }
         });
 
@@ -247,7 +202,14 @@ public class MainActivity extends AppCompatActivity
         spinner.setAdapter(adapter);
     }
 
-    private class PdfRunner extends AsyncTask<String, String, String> {
+    private void sendPdfViaEmail(View view, String workId, String cityName, String locName, Intent email) {
+        PdfInfoDTO dto = new PdfInfoDTO(view, workId, cityName, locName, email);
+        //                PdfDocument document = new PdfDocument();
+        PdfRunner runner = new PdfRunner();
+        runner.execute(dto);
+    }
+
+    private class PdfRunner extends AsyncTask<PdfInfoDTO, String, String> {
         private ProgressDialog dialog = new ProgressDialog(MainActivity.this);
 
         @Override
@@ -257,10 +219,75 @@ public class MainActivity extends AppCompatActivity
         }
 
         @Override
-        protected String doInBackground(String... params) {
+        protected String doInBackground(PdfInfoDTO... params) {
             try {
-                Thread.currentThread().sleep(10000);
-            } catch (InterruptedException e) {
+                PdfInfoDTO dto = params[0];
+                Document document = new Document(PageSize.LETTER);
+                File file = null;
+                OutputStream os;
+                try {
+                    file = createTempFile();
+                    os = new FileOutputStream(file);
+                    PdfWriter.getInstance(document, os);
+                    document.open();
+                    int page = 1;
+                    if (photoUri1 != null) {
+                        document.add(new Paragraph("Trap 1"));
+                        setPdfHeader(dto.getWorkId(), dto.getCityName(), dto.getLocName(), document);
+                        addImageToPage(dto.getView(), document, photoUri1, page++);
+                    }
+                    if (photoUri2 != null) {
+                        document.newPage();
+                        document.add(new Paragraph("Trap 2"));
+                        setPdfHeader(dto.getWorkId(), dto.getCityName(), dto.getLocName(), document);
+                        addImageToPage(dto.getView(), document, photoUri2, page++);
+                    }
+                    if (photoUri3 != null) {
+                        document.newPage();
+                        document.add(new Paragraph("Tester"));
+                        setPdfHeader(dto.getWorkId(), dto.getCityName(), dto.getLocName(), document);
+                        addImageToPage(dto.getView(), document, photoUri3, page++);
+                    }
+                    if (photoUri4 != null) {
+                        document.newPage();
+                        document.add(new Paragraph("Work Order"));
+                        setPdfHeader(dto.getWorkId(), dto.getCityName(), dto.getLocName(), document);
+                        addImageToPage(dto.getView(), document, photoUri4, page++);
+                    }
+                    document.close();
+
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+                File root =  Environment.getExternalStoragePublicDirectory(DIRECTORY_DCIM);
+                File location = new File(root.getPath(), "Camera");
+                File[] files = location.listFiles(new FilenameFilter() {
+                    @Override
+                    public boolean accept(File dir, String name) {
+                        return name.matches("\\d{8}_\\d{6}.jpg");
+                    }
+                });
+                for (File theFile : files) {
+                    theFile.delete();
+                }
+                dto.getEmail().setType("text/pdf");
+
+                dto.getEmail().putExtra(Intent.EXTRA_EMAIL, new String[] {"gary@renegadeoil.net"});
+//                dto.getEmail().putExtra(Intent.EXTRA_EMAIL, new String[] {"tylerjacox@gmail.com","brentjacox@gmail.com"});
+                dto.getEmail().putExtra(Intent.EXTRA_SUBJECT, dto.getLocName()+", "+dto.getCityName()+", #"+dto.getWorkId());
+
+                ArrayList<Uri> photos = new ArrayList<>();
+                photos.add(Uri.fromFile(file));
+                dto.getEmail().putExtra(Intent.EXTRA_STREAM, photos);
+
+                try {
+                    if (dto.getEmail().resolveActivity(getPackageManager()) != null) {
+                        startActivity(dto.getEmail());
+                    }
+                } catch (ActivityNotFoundException ex) {
+                    Toast.makeText(getApplicationContext(), "There are no email clients installed.", Toast.LENGTH_LONG).show();
+                }
+            } catch (Exception e) {
                 e.printStackTrace();
             }
             return "true";
@@ -277,7 +304,8 @@ public class MainActivity extends AppCompatActivity
     private void setPdfHeader(String workId, String cityName, String locName, Document document) throws DocumentException {
         Date date = new Date();
         DateFormat dateFormat = android.text.format.DateFormat.getDateFormat(getApplicationContext());
-        document.add(new Paragraph("#"+workId+" - "+locName+"/"+cityName+" @"+dateFormat.format(date)));
+        DateFormat timeFormat = android.text.format.DateFormat.getTimeFormat(getApplicationContext());
+        document.add(new Paragraph("#"+workId+" - "+locName+"/"+cityName+" @"+dateFormat.format(date)+" "+timeFormat.format(date)));
     }
 
     private void addImageToPage(View view, Document document, Uri photo, int pageNumber) {
