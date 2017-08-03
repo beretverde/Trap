@@ -231,16 +231,11 @@ public class MainActivity extends AppCompatActivity
                     PdfWriter.getInstance(document, os);
                     document.open();
                     int page = 1;
-                    if (photoUri1 != null) {
-                        document.add(new Paragraph("Trap 1"));
-                        setPdfHeader(dto.getWorkId(), dto.getCityName(), dto.getLocName(), document);
-                        addImageToPage(dto.getView(), document, photoUri1, page++);
-                    }
-                    if (photoUri2 != null) {
+                    if (photoUri4 != null) {
                         document.newPage();
-                        document.add(new Paragraph("Trap 2"));
+                        document.add(new Paragraph("Invoice"));
                         setPdfHeader(dto.getWorkId(), dto.getCityName(), dto.getLocName(), document);
-                        addImageToPage(dto.getView(), document, photoUri2, page++);
+                        addImageToPage(dto.getView(), document, photoUri4, page++);
                     }
                     if (photoUri3 != null) {
                         document.newPage();
@@ -248,12 +243,20 @@ public class MainActivity extends AppCompatActivity
                         setPdfHeader(dto.getWorkId(), dto.getCityName(), dto.getLocName(), document);
                         addImageToPage(dto.getView(), document, photoUri3, page++);
                     }
-                    if (photoUri4 != null) {
+
+                    if (photoUri2 != null) {
                         document.newPage();
-                        document.add(new Paragraph("Work Order"));
+                        document.add(new Paragraph("Trap 2"));
                         setPdfHeader(dto.getWorkId(), dto.getCityName(), dto.getLocName(), document);
-                        addImageToPage(dto.getView(), document, photoUri4, page++);
+                        addImageToPage(dto.getView(), document, photoUri2, page++);
                     }
+                    if (photoUri1 != null) {
+                        document.add(new Paragraph("Trap 1"));
+                        setPdfHeader(dto.getWorkId(), dto.getCityName(), dto.getLocName(), document);
+                        addImageToPage(dto.getView(), document, photoUri1, page++);
+                    }
+
+
                     document.close();
 
                 } catch (Exception e) {
