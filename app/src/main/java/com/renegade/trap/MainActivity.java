@@ -275,7 +275,7 @@ public class MainActivity extends AppCompatActivity
                 }
                 dto.getEmail().setType("text/pdf");
 
-                dto.getEmail().putExtra(Intent.EXTRA_EMAIL, new String[] {"gary@renegadeoil.net"});
+                dto.getEmail().putExtra(Intent.EXTRA_EMAIL, new String[] {"renegadetrappics@gmail.com"});
 //                dto.getEmail().putExtra(Intent.EXTRA_EMAIL, new String[] {"tylerjacox@gmail.com","brentjacox@gmail.com"});
                 dto.getEmail().putExtra(Intent.EXTRA_SUBJECT, dto.getLocName()+", "+dto.getCityName()+", #"+dto.getWorkId());
 
