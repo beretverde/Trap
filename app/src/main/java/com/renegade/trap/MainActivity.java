@@ -1,12 +1,21 @@
 package com.renegade.trap;
 
+import android.Manifest;
 import android.app.ProgressDialog;
 import android.content.ActivityNotFoundException;
+import android.content.Context;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
+import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.drawable.BitmapDrawable;
+import android.location.Address;
+import android.location.Geocoder;
+import android.location.Location;
+import android.location.LocationListener;
+import android.location.LocationManager;
+import android.media.ExifInterface;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Build;
@@ -48,12 +57,15 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
+import java.util.Locale;
 
 import static android.os.Environment.DIRECTORY_DCIM;
 
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
 
+    private static final String TAG = MainActivity.class.getSimpleName();
     TextInputEditText workOrderId =null;
     TextInputEditText locationName =null;
     Spinner city = null;
@@ -73,9 +85,26 @@ public class MainActivity extends AppCompatActivity
     int targetW = 0;
     int targetH = 0;
 
+    // GPSTracker class
+    GPSTracker gps;
+
+
+    private static final int INITIAL_REQUEST=1337;
+    private static final String[] INITIAL_PERMS={
+            Manifest.permission.ACCESS_FINE_LOCATION,
+            Manifest.permission.INTERNET
+    };
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            requestPermissions(INITIAL_PERMS, INITIAL_REQUEST);
+        }
+        Log.i(TAG, "onCreate");
+        gps = new GPSTracker(MainActivity.this);
+
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
         setContentView(R.layout.activity_main);
         img1= (ImageButton)findViewById(R.id.imageButton1);
@@ -254,6 +283,8 @@ public class MainActivity extends AppCompatActivity
                         document.add(new Paragraph("Trap 1"));
                         setPdfHeader(dto.getWorkId(), dto.getCityName(), dto.getLocName(), document);
                         addImageToPage(dto.getView(), document, photoUri1, page++);
+
+
                     }
 
 
@@ -314,10 +345,19 @@ public class MainActivity extends AppCompatActivity
     private void addImageToPage(View view, Document document, Uri photo, int pageNumber) {
         Bitmap bitmap = null;
         try {
+            String fileLocation = getRealPathFromUri(getApplicationContext(), photo);
+            ExifInterface exifInterface = null;
+            exifInterface = new ExifInterface(fileLocation);
+
             bitmap = MediaStore.Images.Media.getBitmap(view.getContext().getContentResolver(),photo);
+            int orientation = exifInterface.getAttributeInt(ExifInterface.TAG_ORIENTATION,
+                    ExifInterface.ORIENTATION_UNDEFINED);
+            Bitmap finalBitmap = PhotoUtil.rotateBitmap(bitmap, orientation);
+
+
             // get input stream
             ByteArrayOutputStream stream = new ByteArrayOutputStream();
-            bitmap.compress(Bitmap.CompressFormat.JPEG, 100, stream);
+            finalBitmap.compress(Bitmap.CompressFormat.JPEG, 100, stream);
             Image image = Image.getInstance(stream.toByteArray());
             image.scaleAbsolute(500, 500);
             document.add(image);
@@ -390,6 +430,12 @@ public class MainActivity extends AppCompatActivity
         if (intent.resolveActivity(getPackageManager()) != null) {
             startActivityForResult(intent, REQUEST_IMAGE_CAPTURE);
         }
+        // check if GPS enabled
+        if(gps.canGetLocation()) {
+
+            Location location = gps.getLocation();
+            Log.i(TAG, location.toString());
+        }
     }
     protected void onPause() {
         super.onPause();
@@ -397,15 +443,67 @@ public class MainActivity extends AppCompatActivity
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (requestCode == REQUEST_IMAGE_CAPTURE && resultCode == RESULT_OK) {
+            LocationManager locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
             Uri file = data.getData();
-            Bitmap thumbnail = data.getParcelableExtra("data");
-            Bitmap scaled = Bitmap.createScaledBitmap(thumbnail, targetH, targetW, true);
-            imgView.setImageBitmap(scaled);
-            saveUri(file);
-//            imgView.setImageURI(file);
+            String fileLocation = getRealPathFromUri(getApplicationContext(), file);
+            System.out.println(fileLocation);
+            ExifInterface exifInterface = null;
+            try {
+                exifInterface = new ExifInterface(fileLocation);
+                String exif="Exif: " + file;
+                exif += "\nIMAGE_LENGTH: " + exifInterface.getAttribute(ExifInterface.TAG_IMAGE_LENGTH);
+                exif += "\nIMAGE_WIDTH: " + exifInterface.getAttribute(ExifInterface.TAG_IMAGE_WIDTH);
+                exif += "\n DATETIME: " + exifInterface.getAttribute(ExifInterface.TAG_DATETIME);
+                exif += "\n TAG_MAKE: " + exifInterface.getAttribute(ExifInterface.TAG_MAKE);
+                exif += "\n TAG_MODEL: " + exifInterface.getAttribute(ExifInterface.TAG_MODEL);
+                exif += "\n TAG_ORIENTATION: " + exifInterface.getAttribute(ExifInterface.TAG_ORIENTATION);
+                exif += "\n TAG_WHITE_BALANCE: " + exifInterface.getAttribute(ExifInterface.TAG_WHITE_BALANCE);
+                exif += "\n TAG_FOCAL_LENGTH: " + exifInterface.getAttribute(ExifInterface.TAG_FOCAL_LENGTH);
+                exif += "\n TAG_FLASH: " + exifInterface.getAttribute(ExifInterface.TAG_FLASH);
 
+                exif += "\nGPS related:";
+
+                exif += "\n TAG_GPS_SATELLITES: " + exifInterface.getAttribute(ExifInterface.TAG_GPS_SATELLITES);
+                exif += "\n TAG_GPS_DATESTAMP: " + exifInterface.getAttribute(ExifInterface.TAG_GPS_DATESTAMP);
+                exif += "\n TAG_GPS_TIMESTAMP: " + exifInterface.getAttribute(ExifInterface.TAG_GPS_TIMESTAMP);
+                exif += "\n TAG_GPS_LATITUDE: " + exifInterface.getAttribute(ExifInterface.TAG_GPS_LATITUDE);
+                exif += "\n TAG_GPS_LATITUDE_REF: " + exifInterface.getAttribute(ExifInterface.TAG_GPS_LATITUDE_REF);
+                exif += "\n TAG_GPS_LONGITUDE: " + exifInterface.getAttribute(ExifInterface.TAG_GPS_LONGITUDE);
+                exif += "\n TAG_GPS_LONGITUDE_REF: " + exifInterface.getAttribute(ExifInterface.TAG_GPS_LONGITUDE_REF);
+                exif += "\n TAG_GPS_PROCESSING_METHOD: " + exifInterface.getAttribute(ExifInterface.TAG_GPS_PROCESSING_METHOD);
+                System.out.println(exif);
+
+                Bitmap thumbnail = data.getParcelableExtra("data");
+                int orientation = exifInterface.getAttributeInt(ExifInterface.TAG_ORIENTATION,
+                        ExifInterface.ORIENTATION_UNDEFINED);
+                Bitmap image = PhotoUtil.rotateBitmap(thumbnail, orientation);
+//                Bitmap scaled = Bitmap.createScaledBitmap(thumbnail, targetH, targetW, true);
+                imgView.setImageBitmap(image);
+                saveUri(file);
+
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+
+//            imgView.setImageURI(file);
+//
 //            imgView.setImageBitmap(decodeSampledBitmapFromFile(photoFile.getAbsoluteFile(), 400, 300));
 //            imgView.setImageURI(photoUri);
+        }
+    }
+    public static String getRealPathFromUri(Context context, Uri contentUri) {
+        Cursor cursor = null;
+        try {
+            String[] proj = { MediaStore.Images.Media.DATA };
+            cursor = context.getContentResolver().query(contentUri, proj, null, null, null);
+            int column_index = cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATA);
+            cursor.moveToFirst();
+            return cursor.getString(column_index);
+        } finally {
+            if (cursor != null) {
+                cursor.close();
+            }
         }
     }
 
@@ -527,4 +625,43 @@ public class MainActivity extends AppCompatActivity
         super.onRestoreInstanceState(savedInstanceState);
     }
 
+}
+class MyLocationListenerGPS implements LocationListener {
+    Context context = null;
+    public MyLocationListenerGPS(Context context) {
+        this.context = context;
+    }
+
+    @Override
+    public void onLocationChanged(Location location) {
+        String cityName = null;
+        Geocoder gcd = new Geocoder(context, Locale.getDefault());
+        List<Address> addresses;
+        try {
+            addresses = gcd.getFromLocation(location.getLatitude(),
+                    location.getLongitude(), 1);
+            if (addresses.size() > 0) {
+                System.out.println(addresses.get(0).getLocality());
+                cityName = addresses.get(0).getLocality();
+            }
+        }
+        catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Override
+    public void onStatusChanged(String provider, int status, Bundle extras) {
+
+    }
+
+    @Override
+    public void onProviderEnabled(String provider) {
+
+    }
+
+    @Override
+    public void onProviderDisabled(String provider) {
+
+    }
 }
