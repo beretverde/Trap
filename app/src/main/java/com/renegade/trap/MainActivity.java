@@ -434,7 +434,9 @@ public class MainActivity extends AppCompatActivity
         if(gps.canGetLocation()) {
 
             Location location = gps.getLocation();
-            Log.i(TAG, location.toString());
+            if (location != null) {
+                Log.i(TAG, location.toString());
+            }
         }
     }
     protected void onPause() {
