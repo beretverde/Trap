@@ -1,11 +1,13 @@
 package com.renegade.trap;
 
 import android.Manifest;
+import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
+import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -14,7 +16,6 @@ import android.location.Address;
 import android.location.Geocoder;
 import android.location.Location;
 import android.location.LocationListener;
-import android.location.LocationManager;
 import android.media.ExifInterface;
 import android.net.Uri;
 import android.os.AsyncTask;
@@ -25,6 +26,7 @@ import android.provider.MediaStore;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.NavigationView;
 import android.support.design.widget.TextInputEditText;
+import android.support.v4.app.ActivityCompat;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
@@ -38,6 +40,7 @@ import android.widget.ArrayAdapter;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.Spinner;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.itextpdf.text.Document;
@@ -61,6 +64,9 @@ import java.util.List;
 import java.util.Locale;
 
 import static android.os.Environment.DIRECTORY_DCIM;
+import static com.renegade.trap.MainActivity.PERMISSIONS_STORAGE;
+import static com.renegade.trap.MainActivity.REQUEST_EXTERNAL_STORAGE;
+import static com.renegade.trap.MyLocationListenerGPS.verifyStoragePermissions;
 
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
@@ -69,6 +75,7 @@ public class MainActivity extends AppCompatActivity
     TextInputEditText workOrderId =null;
     TextInputEditText locationName =null;
     Spinner city = null;
+    TextView gpsDisplay = null;
 
     ImageButton img1=null;
     ImageButton img2=null;
@@ -88,20 +95,29 @@ public class MainActivity extends AppCompatActivity
     // GPSTracker class
     GPSTracker gps;
 
+    List<Customer> customers = null;
+
 
     private static final int INITIAL_REQUEST=1337;
     private static final String[] INITIAL_PERMS={
             Manifest.permission.ACCESS_FINE_LOCATION,
-            Manifest.permission.INTERNET
+            Manifest.permission.INTERNET,
+            Manifest.permission.WRITE_EXTERNAL_STORAGE
     };
+    public static final int REQUEST_EXTERNAL_STORAGE = 1;
+    public static String[] PERMISSIONS_STORAGE = {  Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.WRITE_EXTERNAL_STORAGE  };
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        customers = Customers.readTextFile(getApplicationContext(), R.raw.customers);
+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             requestPermissions(INITIAL_PERMS, INITIAL_REQUEST);
         }
+        verifyStoragePermissions(this);
+
         Log.i(TAG, "onCreate");
         gps = new GPSTracker(MainActivity.this);
 
@@ -114,6 +130,7 @@ public class MainActivity extends AppCompatActivity
         workOrderId=(TextInputEditText)findViewById(R.id.work_order_id);
         locationName=(TextInputEditText)findViewById(R.id.locationName);
         city=(Spinner)findViewById(R.id.spinner);
+        gpsDisplay = (TextView)findViewById(R.id.gpsLocation);
 
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
@@ -431,13 +448,6 @@ public class MainActivity extends AppCompatActivity
             startActivityForResult(intent, REQUEST_IMAGE_CAPTURE);
         }
         // check if GPS enabled
-        if(gps.canGetLocation()) {
-
-            Location location = gps.getLocation();
-            if (location != null) {
-                Log.i(TAG, location.toString());
-            }
-        }
     }
     protected void onPause() {
         super.onPause();
@@ -445,7 +455,6 @@ public class MainActivity extends AppCompatActivity
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (requestCode == REQUEST_IMAGE_CAPTURE && resultCode == RESULT_OK) {
-            LocationManager locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
             Uri file = data.getData();
             String fileLocation = getRealPathFromUri(getApplicationContext(), file);
             System.out.println(fileLocation);
@@ -479,21 +488,49 @@ public class MainActivity extends AppCompatActivity
                 int orientation = exifInterface.getAttributeInt(ExifInterface.TAG_ORIENTATION,
                         ExifInterface.ORIENTATION_UNDEFINED);
                 Bitmap image = PhotoUtil.rotateBitmap(thumbnail, orientation);
-//                Bitmap scaled = Bitmap.createScaledBitmap(thumbnail, targetH, targetW, true);
                 imgView.setImageBitmap(image);
                 saveUri(file);
+
+                Customer customer = getCustomerLocation();
+                if (customer != null) {
+                    locationName.setText(customer.getName());
+                    city.setSelection(((ArrayAdapter<String>)city.getAdapter()).getPosition(customer.getCity()));
+                    Log.i(TAG, customer.toString());
+                }
 
             } catch (IOException e) {
                 e.printStackTrace();
             }
-
-
-//            imgView.setImageURI(file);
-//
-//            imgView.setImageBitmap(decodeSampledBitmapFromFile(photoFile.getAbsoluteFile(), 400, 300));
-//            imgView.setImageURI(photoUri);
         }
     }
+
+    public Customer getCustomerLocation() {
+        Customer customer = null;
+        if (gps.canGetLocation()) {
+            Location location = gps.getLocation();
+            gpsDisplay.setText(location.toString());
+            if (location != null) {
+                String cityName = null;
+                Geocoder gcd = new Geocoder(getApplicationContext(), Locale.getDefault());
+                List<Address> addresses;
+                try {
+                    addresses = gcd.getFromLocation(location.getLatitude(),
+                            location.getLongitude(), 1);
+                    if (addresses.size() > 0) {
+                        System.out.println(addresses.get(0).getLocality());
+                        cityName = addresses.get(0).getLocality();
+                    }
+                    Log.i(TAG, location.toString());
+                    customer = Customers.findClosest(getApplicationContext(),location.getLatitude(), location.getLongitude(), customers, cityName);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+
+        }
+        return customer;
+    }
+
     public static String getRealPathFromUri(Context context, Uri contentUri) {
         Cursor cursor = null;
         try {
@@ -666,4 +703,18 @@ class MyLocationListenerGPS implements LocationListener {
     public void onProviderDisabled(String provider) {
 
     }
+    public static void verifyStoragePermissions(Activity activity) {
+        // Check if we have write permission
+        int permission = ActivityCompat.checkSelfPermission(activity, Manifest.permission.WRITE_EXTERNAL_STORAGE);
+
+        if (permission != PackageManager.PERMISSION_GRANTED) {
+            // We don't have permission so prompt the user
+            ActivityCompat.requestPermissions(
+                    activity,
+                    PERMISSIONS_STORAGE,
+                    REQUEST_EXTERNAL_STORAGE
+            );
+        }
+    }
+
 }

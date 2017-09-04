@@ -174,8 +174,13 @@
         android:background="@null"
         />
 
+    <TextView
+        android:id="@+id/gpsLocation"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
 
-    </LinearLayout>
+
+</LinearLayout>
 
 
 </android.support.constraint.ConstraintLayout>
