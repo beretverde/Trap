@@ -27,6 +27,8 @@ import java.util.List;
 public class Customers {
     private static final String TAG = Customers.class.getSimpleName();
 
+    private static double GPS_OFFSET = 0.001553D;
+
     public static List<Customer> readTextFile(Context ctx, int resId) {
         InputStream inputStream = ctx.getResources().openRawResource(resId);
 
@@ -52,7 +54,7 @@ public class Customers {
         }
         return customers;
     }
-    public static Customer findClosest(Context ctx, double latitude, double longitude, List<Customer> customers, String city) {
+    public static Customer findClosest(Context ctx, double latitude, double longitude, List<Customer> customers, String locationStr) {
         Customer nearestCustomer = null;
         float[] results = new float[4];
         float closest = 0.0f;
@@ -67,10 +69,11 @@ public class Customers {
             bw = new BufferedWriter(new OutputStreamWriter(fos));
             bw.write("Location="+latitude+" "+longitude);
             bw.newLine();
-            bw.write("City="+city);
+            bw.write("string="+locationStr);
             bw.newLine();
             for (Customer customer : customers ) {
-                if (customer.getCity().equalsIgnoreCase(city)) {
+                if (customer.getLatitude() < (latitude+ GPS_OFFSET) && customer.getLatitude() > latitude- GPS_OFFSET &&
+                        customer.getLongitude() > (longitude-GPS_OFFSET)  && customer.getLongitude() < (longitude+GPS_OFFSET)) {
                     Location.distanceBetween(latitude, longitude, customer.getLatitude(), customer.getLongitude(), results);
                     bw.write("Distance to: "+customer.getName()+" ="+results[0]);
                     bw.newLine();
@@ -96,6 +99,9 @@ public class Customers {
         finally {
             if (fos != null) {
                 try {
+                    if (bw != null) {
+                        bw.flush();
+                    }
                     fos.close();
                     bw.close();
                 } catch (IOException e) {
