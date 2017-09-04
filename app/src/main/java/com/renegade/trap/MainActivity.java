@@ -130,7 +130,6 @@ public class MainActivity extends AppCompatActivity
         workOrderId=(TextInputEditText)findViewById(R.id.work_order_id);
         locationName=(TextInputEditText)findViewById(R.id.locationName);
         city=(Spinner)findViewById(R.id.spinner);
-        gpsDisplay = (TextView)findViewById(R.id.gpsLocation);
 
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
@@ -461,28 +460,6 @@ public class MainActivity extends AppCompatActivity
             ExifInterface exifInterface = null;
             try {
                 exifInterface = new ExifInterface(fileLocation);
-                String exif="Exif: " + file;
-                exif += "\nIMAGE_LENGTH: " + exifInterface.getAttribute(ExifInterface.TAG_IMAGE_LENGTH);
-                exif += "\nIMAGE_WIDTH: " + exifInterface.getAttribute(ExifInterface.TAG_IMAGE_WIDTH);
-                exif += "\n DATETIME: " + exifInterface.getAttribute(ExifInterface.TAG_DATETIME);
-                exif += "\n TAG_MAKE: " + exifInterface.getAttribute(ExifInterface.TAG_MAKE);
-                exif += "\n TAG_MODEL: " + exifInterface.getAttribute(ExifInterface.TAG_MODEL);
-                exif += "\n TAG_ORIENTATION: " + exifInterface.getAttribute(ExifInterface.TAG_ORIENTATION);
-                exif += "\n TAG_WHITE_BALANCE: " + exifInterface.getAttribute(ExifInterface.TAG_WHITE_BALANCE);
-                exif += "\n TAG_FOCAL_LENGTH: " + exifInterface.getAttribute(ExifInterface.TAG_FOCAL_LENGTH);
-                exif += "\n TAG_FLASH: " + exifInterface.getAttribute(ExifInterface.TAG_FLASH);
-
-                exif += "\nGPS related:";
-
-                exif += "\n TAG_GPS_SATELLITES: " + exifInterface.getAttribute(ExifInterface.TAG_GPS_SATELLITES);
-                exif += "\n TAG_GPS_DATESTAMP: " + exifInterface.getAttribute(ExifInterface.TAG_GPS_DATESTAMP);
-                exif += "\n TAG_GPS_TIMESTAMP: " + exifInterface.getAttribute(ExifInterface.TAG_GPS_TIMESTAMP);
-                exif += "\n TAG_GPS_LATITUDE: " + exifInterface.getAttribute(ExifInterface.TAG_GPS_LATITUDE);
-                exif += "\n TAG_GPS_LATITUDE_REF: " + exifInterface.getAttribute(ExifInterface.TAG_GPS_LATITUDE_REF);
-                exif += "\n TAG_GPS_LONGITUDE: " + exifInterface.getAttribute(ExifInterface.TAG_GPS_LONGITUDE);
-                exif += "\n TAG_GPS_LONGITUDE_REF: " + exifInterface.getAttribute(ExifInterface.TAG_GPS_LONGITUDE_REF);
-                exif += "\n TAG_GPS_PROCESSING_METHOD: " + exifInterface.getAttribute(ExifInterface.TAG_GPS_PROCESSING_METHOD);
-                System.out.println(exif);
 
                 Bitmap thumbnail = data.getParcelableExtra("data");
                 int orientation = exifInterface.getAttributeInt(ExifInterface.TAG_ORIENTATION,
@@ -508,25 +485,10 @@ public class MainActivity extends AppCompatActivity
         Customer customer = null;
         if (gps.canGetLocation()) {
             Location location = gps.getLocation();
-            gpsDisplay.setText(location.toString());
             if (location != null) {
-                String cityName = null;
-                Geocoder gcd = new Geocoder(getApplicationContext(), Locale.getDefault());
-                List<Address> addresses;
-                try {
-                    addresses = gcd.getFromLocation(location.getLatitude(),
-                            location.getLongitude(), 1);
-                    if (addresses.size() > 0) {
-                        System.out.println(addresses.get(0).getLocality());
-                        cityName = addresses.get(0).getLocality();
-                    }
-                    Log.i(TAG, location.toString());
-                    customer = Customers.findClosest(getApplicationContext(),location.getLatitude(), location.getLongitude(), customers, cityName);
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
+                Log.i(TAG, location.toString());
+                customer = Customers.findClosest(getApplicationContext(),location.getLatitude(), location.getLongitude(), customers, location.toString());
             }
-
         }
         return customer;
     }
