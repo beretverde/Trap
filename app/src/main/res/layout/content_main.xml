@@ -42,56 +42,7 @@
 
 
 
-    <LinearLayout
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        tools:layout_editor_absoluteY="0dp"
-        tools:layout_editor_absoluteX="8dp"
-        android:layout_gravity="center">
 
-        <LinearLayout
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:orientation="vertical">
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:text="Trap 1"
-                android:textAlignment="center"/>
-
-            <ImageButton
-                android:id="@+id/imageButton1"
-                android:layout_width="70dp"
-                android:layout_height="70dp"
-                app:srcCompat="@android:drawable/ic_menu_report_image"
-                android:layout_gravity="fill_horizontal"
-                android:layout_marginRight="10dp"
-                />
-
-        </LinearLayout>
-
-        <LinearLayout
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:orientation="vertical">
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:text="Trap 2"
-                android:textAlignment="center"/>
-
-            <ImageButton
-                android:id="@+id/imageButton2"
-                android:layout_width="70dp"
-                android:layout_height="70dp"
-                app:srcCompat="@android:drawable/ic_menu_report_image"
-                android:layout_gravity="fill_vertical"
-
-                />
-        </LinearLayout>
-
-    </LinearLayout>
 
     <LinearLayout
         android:layout_width="wrap_content"
@@ -135,6 +86,57 @@
 
             <ImageButton
                 android:id="@+id/imageButton4"
+                android:layout_width="70dp"
+                android:layout_height="70dp"
+                app:srcCompat="@android:drawable/ic_menu_report_image"
+                android:layout_gravity="fill_vertical"
+
+                />
+        </LinearLayout>
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        tools:layout_editor_absoluteY="0dp"
+        tools:layout_editor_absoluteX="8dp"
+        android:layout_gravity="center">
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:text="Trap 1"
+                android:textAlignment="center"/>
+
+            <ImageButton
+                android:id="@+id/imageButton1"
+                android:layout_width="70dp"
+                android:layout_height="70dp"
+                app:srcCompat="@android:drawable/ic_menu_report_image"
+                android:layout_gravity="fill_horizontal"
+                android:layout_marginRight="10dp"
+                />
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:text="Trap 2"
+                android:textAlignment="center"/>
+
+            <ImageButton
+                android:id="@+id/imageButton2"
                 android:layout_width="70dp"
                 android:layout_height="70dp"
                 app:srcCompat="@android:drawable/ic_menu_report_image"
