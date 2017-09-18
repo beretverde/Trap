@@ -231,6 +231,10 @@ public class MainActivity extends AppCompatActivity
                 photoUri2=null;
                 photoUri3=null;
                 photoUri4=null;
+                img1.setImageResource(R.drawable.ic_menu_camera);
+                img2.setImageResource(R.drawable.ic_menu_camera);
+                img3.setImageResource(R.drawable.ic_menu_camera);
+                img4.setImageResource(R.drawable.ic_menu_camera);
 
             }
         });
