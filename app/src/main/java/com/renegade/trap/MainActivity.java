@@ -224,6 +224,13 @@ public class MainActivity extends AppCompatActivity
 
                 sendPdfViaEmail(view, workId, cityName, locName, email);
 
+                workOrderId.setText("");
+                locationName.setText("");
+                city.setSelection(((ArrayAdapter<String>)city.getAdapter()).getPosition("Select City"));
+                photoUri1=null;
+                photoUri2=null;
+                photoUri3=null;
+                photoUri4=null;
 
             }
         });
@@ -246,6 +253,7 @@ public class MainActivity extends AppCompatActivity
         // Apply the adapter to the spinner
         spinner.setAdapter(adapter);
     }
+
 
     private void sendPdfViaEmail(View view, String workId, String cityName, String locName, Intent email) {
         PdfInfoDTO dto = new PdfInfoDTO(view, workId, cityName, locName, email);
@@ -296,6 +304,7 @@ public class MainActivity extends AppCompatActivity
                         addImageToPage(dto.getView(), document, photoUri2, page++);
                     }
                     if (photoUri1 != null) {
+                        document.newPage();
                         document.add(new Paragraph("Trap 1"));
                         setPdfHeader(dto.getWorkId(), dto.getCityName(), dto.getLocName(), document);
                         addImageToPage(dto.getView(), document, photoUri1, page++);
