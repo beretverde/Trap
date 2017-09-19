@@ -224,17 +224,6 @@ public class MainActivity extends AppCompatActivity
 
                 sendPdfViaEmail(view, workId, cityName, locName, email);
 
-                workOrderId.setText("");
-                locationName.setText("");
-                city.setSelection(((ArrayAdapter<String>)city.getAdapter()).getPosition("Select City"));
-                photoUri1=null;
-                photoUri2=null;
-                photoUri3=null;
-                photoUri4=null;
-                img1.setImageResource(R.drawable.ic_menu_camera);
-                img2.setImageResource(R.drawable.ic_menu_camera);
-                img3.setImageResource(R.drawable.ic_menu_camera);
-                img4.setImageResource(R.drawable.ic_menu_camera);
 
             }
         });
@@ -343,6 +332,11 @@ public class MainActivity extends AppCompatActivity
                 photos.add(Uri.fromFile(file));
                 dto.getEmail().putExtra(Intent.EXTRA_STREAM, photos);
 
+                photoUri1=null;
+                photoUri2=null;
+                photoUri3=null;
+                photoUri4=null;
+
                 try {
                     if (dto.getEmail().resolveActivity(getPackageManager()) != null) {
                         startActivity(dto.getEmail());
@@ -358,6 +352,13 @@ public class MainActivity extends AppCompatActivity
         protected void onPostExecute(String status) {
             if (dialog.isShowing()) {
                 dialog.dismiss();
+                workOrderId.setText("");
+                locationName.setText("");
+                city.setSelection(((ArrayAdapter<String>)city.getAdapter()).getPosition("Select City"));
+                img1.setImageResource(R.drawable.ic_menu_camera);
+                img2.setImageResource(R.drawable.ic_menu_camera);
+                img3.setImageResource(R.drawable.ic_menu_camera);
+                img4.setImageResource(R.drawable.ic_menu_camera);
             }
         }
 

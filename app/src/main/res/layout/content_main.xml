@@ -64,7 +64,7 @@
                 android:id="@+id/imageButton1"
                 android:layout_width="70dp"
                 android:layout_height="70dp"
-                app:srcCompat="@android:drawable/ic_menu_report_image"
+                app:srcCompat="@android:drawable/ic_menu_camera"
                 android:layout_gravity="fill_horizontal"
                 android:layout_marginRight="10dp"
                 />
@@ -85,7 +85,7 @@
                 android:id="@+id/imageButton2"
                 android:layout_width="70dp"
                 android:layout_height="70dp"
-                app:srcCompat="@android:drawable/ic_menu_report_image"
+                app:srcCompat="@android:drawable/ic_menu_camera"
                 android:layout_gravity="fill_vertical"
 
                 />
@@ -117,7 +117,7 @@
                 android:id="@+id/imageButton3"
                 android:layout_width="70dp"
                 android:layout_height="70dp"
-                app:srcCompat="@android:drawable/ic_menu_report_image"
+                app:srcCompat="@android:drawable/ic_menu_camera"
                 android:layout_gravity="fill_horizontal"
                 android:layout_marginRight="10dp"
                 />
@@ -137,7 +137,7 @@
                 android:id="@+id/imageButton4"
                 android:layout_width="70dp"
                 android:layout_height="70dp"
-                app:srcCompat="@android:drawable/ic_menu_report_image"
+                app:srcCompat="@android:drawable/ic_menu_camera"
                 android:layout_gravity="fill_vertical"
 
                 />
