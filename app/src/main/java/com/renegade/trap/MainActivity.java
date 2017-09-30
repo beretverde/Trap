@@ -171,14 +171,14 @@ public class MainActivity extends AppCompatActivity
         img3.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                getCompatiblePhoto(1, img3);
+                getCompatiblePhoto(3, img3);
             }
         });
 
         img4.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                getCompatiblePhoto(1, img4);
+                getCompatiblePhoto(4, img4);
             }
         });
 
