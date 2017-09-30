@@ -112,6 +112,31 @@ public class Customers {
 
         return nearestCustomer;
     }
+    public static List<Customer> readTextFilePreConv(Context ctx, int resId) {
+        InputStream inputStream = ctx.getResources().openRawResource(resId);
+
+        InputStreamReader inputreader = new InputStreamReader(inputStream);
+        BufferedReader buffreader = new BufferedReader(inputreader);
+        String line;
+        List<Customer> customers = new ArrayList<>();
+
+        try {
+            while (( line = buffreader.readLine()) != null) {
+                String[] values = line.split(",");
+                if (values.length >= 4 ) {
+                    try {
+                        Customer customer = new Customer(values[0].replace("\"",""), values[1].replace("\"",""), values[2].replace("\"",""), values[3].replace("\"",""), null);
+                        customers.add(customer);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return customers;
+    }
 
     public static void geocode(Context ctx, List<Customer> customers) {
         File output = null;
@@ -136,9 +161,9 @@ public class Customers {
                 }
                 if (addresses.isEmpty()) {
                     Log.i(TAG, "NO LAT/LON for ADDRESS: "+customer.toString());
+                    bw.write(customer.toString());
+                    bw.newLine();
                 }
-                bw.write(customer.toString());
-                bw.newLine();
             }
             bw.flush();
         } catch (Exception e) {

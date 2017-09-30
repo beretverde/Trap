@@ -11,7 +11,6 @@ import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.graphics.drawable.BitmapDrawable;
 import android.location.Address;
 import android.location.Geocoder;
 import android.location.Location;
@@ -27,6 +26,7 @@ import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.NavigationView;
 import android.support.design.widget.TextInputEditText;
 import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.FileProvider;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
@@ -40,7 +40,6 @@ import android.widget.ArrayAdapter;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.Spinner;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import com.itextpdf.text.Document;
@@ -75,17 +74,17 @@ public class MainActivity extends AppCompatActivity
     TextInputEditText workOrderId =null;
     TextInputEditText locationName =null;
     Spinner city = null;
-    TextView gpsDisplay = null;
 
     ImageButton img1=null;
     ImageButton img2=null;
     ImageButton img3=null;
     ImageButton img4=null;
     ImageView imgView=null;
-    Uri photoUri1= null;
-    Uri photoUri2= null;
-    Uri photoUri3= null;
-    Uri photoUri4= null;
+    PhotoExternals photo1= new PhotoExternals();
+    PhotoExternals photo2= new PhotoExternals();
+    PhotoExternals photo3= new PhotoExternals();
+    PhotoExternals photo4= new PhotoExternals();
+    File photoFile=null;
 
     // used to place the photo on screen
     int place;
@@ -111,6 +110,8 @@ public class MainActivity extends AppCompatActivity
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+//        List<Customer>  convCust = Customers.readTextFilePreConv(getApplicationContext(), R.raw.additionaldata);
+//        Customers.geocode(getApplicationContext(), convCust);
         customers = Customers.readTextFile(getApplicationContext(), R.raw.customers);
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
@@ -134,63 +135,50 @@ public class MainActivity extends AppCompatActivity
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
-        if (Build.VERSION.SDK_INT >= 14) {
-            Log.e("-->", "Build: "+Build.VERSION.SDK_INT);
-        } else {
-            Log.e("-->", " < 14");
-        }
 
         targetW = 180;
         targetH = 180;
 
         if (savedInstanceState != null) {
-            Bitmap image1 = savedInstanceState.getParcelable("bitmap1");
-            img1.setImageBitmap(image1);
-            Bitmap image2 = savedInstanceState.getParcelable("bitmap2");
-            img2.setImageBitmap(image2);
-            Bitmap image3 = savedInstanceState.getParcelable("bitmap3");
-            img3.setImageBitmap(image3);
-            Bitmap image4 = savedInstanceState.getParcelable("bitmap4");
-            img4.setImageBitmap(image4);
-            photoUri1 = savedInstanceState.getParcelable("photoUri1");
-            photoUri2 = savedInstanceState.getParcelable("photoUri2");
-            photoUri3 = savedInstanceState.getParcelable("photoUri3");
-            photoUri4 = savedInstanceState.getParcelable("photoUri4");
+//            Bitmap image1 = savedInstanceState.getParcelable("bitmap1");
+//            img1.setImageBitmap(image1);
+//            Bitmap image2 = savedInstanceState.getParcelable("bitmap2");
+//            img2.setImageBitmap(image2);
+//            Bitmap image3 = savedInstanceState.getParcelable("bitmap3");
+//            img3.setImageBitmap(image3);
+//            Bitmap image4 = savedInstanceState.getParcelable("bitmap4");
+//            img4.setImageBitmap(image4);
+            photo1 = savedInstanceState.getParcelable("photo1");
+            photo2 = savedInstanceState.getParcelable("photo2");
+            photo3 = savedInstanceState.getParcelable("photo3");
+            photo4 = savedInstanceState.getParcelable("photo4");
         }
 
         img1.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                place = 1;
-                imgView=img1;
-                capturePhoto();
+                getCompatiblePhoto(1, img1);
             }
         });
 
         img2.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                place = 2;
-                imgView=img2;
-                capturePhoto();
+                getCompatiblePhoto(2, img2);
             }
         });
 
         img3.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                place = 3;
-                imgView=img3;
-                capturePhoto();
+                getCompatiblePhoto(1, img3);
             }
         });
 
         img4.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                place = 4;
-                imgView=img4;
-                capturePhoto();
+                getCompatiblePhoto(1, img4);
             }
         });
 
@@ -247,6 +235,16 @@ public class MainActivity extends AppCompatActivity
         spinner.setAdapter(adapter);
     }
 
+    private void getCompatiblePhoto(int idx, ImageView img) {
+        place = idx;
+        imgView=img;
+        if (Build.VERSION.SDK_INT > 19) {
+            savePhotoLocation(dispatchTakePictureIntent());
+        } else {
+            capturePhoto();
+        }
+    }
+
 
     private void sendPdfViaEmail(View view, String workId, String cityName, String locName, Intent email) {
         PdfInfoDTO dto = new PdfInfoDTO(view, workId, cityName, locName, email);
@@ -277,30 +275,30 @@ public class MainActivity extends AppCompatActivity
                     PdfWriter.getInstance(document, os);
                     document.open();
                     int page = 1;
-                    if (photoUri4 != null) {
+                    if (photo4.hasPhoto()) {
                         document.newPage();
                         document.add(new Paragraph("Invoice"));
                         setPdfHeader(dto.getWorkId(), dto.getCityName(), dto.getLocName(), document);
-                        addImageToPage(dto.getView(), document, photoUri4, page++);
+                        addImageToPage(dto.getView(), document, photo4, page++);
                     }
-                    if (photoUri3 != null) {
+                    if (photo3.hasPhoto()) {
                         document.newPage();
                         document.add(new Paragraph("Tester"));
                         setPdfHeader(dto.getWorkId(), dto.getCityName(), dto.getLocName(), document);
-                        addImageToPage(dto.getView(), document, photoUri3, page++);
+                        addImageToPage(dto.getView(), document, photo3, page++);
                     }
 
-                    if (photoUri2 != null) {
+                    if (photo2.hasPhoto()) {
                         document.newPage();
                         document.add(new Paragraph("Trap 2"));
                         setPdfHeader(dto.getWorkId(), dto.getCityName(), dto.getLocName(), document);
-                        addImageToPage(dto.getView(), document, photoUri2, page++);
+                        addImageToPage(dto.getView(), document, photo2, page++);
                     }
-                    if (photoUri1 != null) {
+                    if (photo1.hasPhoto()) {
                         document.newPage();
                         document.add(new Paragraph("Trap 1"));
                         setPdfHeader(dto.getWorkId(), dto.getCityName(), dto.getLocName(), document);
-                        addImageToPage(dto.getView(), document, photoUri1, page++);
+                        addImageToPage(dto.getView(), document, photo1, page++);
 
 
                     }
@@ -329,13 +327,18 @@ public class MainActivity extends AppCompatActivity
                 dto.getEmail().putExtra(Intent.EXTRA_SUBJECT, dto.getLocName()+", "+dto.getCityName()+", #"+dto.getWorkId());
 
                 ArrayList<Uri> photos = new ArrayList<>();
-                photos.add(Uri.fromFile(file));
+                if (Build.VERSION.SDK_INT >= 24) {
+                    photos.add(FileProvider.getUriForFile(getApplicationContext(),"com.example.android.fileprovider",file));
+                } else {
+                    photos.add(Uri.fromFile(file));
+                }
+
                 dto.getEmail().putExtra(Intent.EXTRA_STREAM, photos);
 
-                photoUri1=null;
-                photoUri2=null;
-                photoUri3=null;
-                photoUri4=null;
+                photo1=null;
+                photo2=null;
+                photo3=null;
+                photo4=null;
 
                 try {
                     if (dto.getEmail().resolveActivity(getPackageManager()) != null) {
@@ -372,14 +375,27 @@ public class MainActivity extends AppCompatActivity
         document.add(new Paragraph("#"+workId+" - "+locName+"/"+cityName+" @"+dateFormat.format(date)+" "+timeFormat.format(date)));
     }
 
-    private void addImageToPage(View view, Document document, Uri photo, int pageNumber) {
+    private void addImageToPage(View view, Document document, PhotoExternals photo, int pageNumber) {
         Bitmap bitmap = null;
         try {
-            String fileLocation = getRealPathFromUri(getApplicationContext(), photo);
+            String fileLocation = null;
+            if (Build.VERSION.SDK_INT <= 19) {
+                fileLocation = getRealPathFromUri(getApplicationContext(), photo.getPhotoUri());
+            } else {
+                fileLocation = photo.getPhotoFile().getAbsolutePath();
+            }
             ExifInterface exifInterface = null;
             exifInterface = new ExifInterface(fileLocation);
 
-            bitmap = MediaStore.Images.Media.getBitmap(view.getContext().getContentResolver(),photo);
+            if (Build.VERSION.SDK_INT <= 19) {
+                bitmap = MediaStore.Images.Media.getBitmap(view.getContext().getContentResolver(),photo.getPhotoUri());
+            } else {
+                Uri photoUri = FileProvider.getUriForFile(this,
+                        "com.example.android.fileprovider",
+                        photo.getPhotoFile());
+
+                bitmap = MediaStore.Images.Media.getBitmap(view.getContext().getContentResolver(),photoUri);
+            }
             int orientation = exifInterface.getAttributeInt(ExifInterface.TAG_ORIENTATION,
                     ExifInterface.ORIENTATION_UNDEFINED);
             Bitmap finalBitmap = PhotoUtil.rotateBitmap(bitmap, orientation);
@@ -460,7 +476,36 @@ public class MainActivity extends AppCompatActivity
         if (intent.resolveActivity(getPackageManager()) != null) {
             startActivityForResult(intent, REQUEST_IMAGE_CAPTURE);
         }
-        // check if GPS enabled
+    }
+    private File dispatchTakePictureIntent() {
+//        Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+//        if (takePictureIntent.resolveActivity(getPackageManager()) != null) {
+//            startActivityForResult(takePictureIntent, REQUEST_IMAGE_CAPTURE);
+//        }
+        Uri photoURI = null;
+        Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+        // Ensure that there's a camera activity to handle the intent
+        if (takePictureIntent.resolveActivity(getPackageManager()) != null) {
+            // Create the File where the photo should go
+
+            photoFile = null;
+            try {
+                photoFile = createImageFile();
+            } catch (IOException ex) {
+                // Error occurred while creating the File
+
+            }
+            // Continue only if the File was successfully created
+            if (photoFile != null) {
+                photoURI = FileProvider.getUriForFile(this,
+                        "com.example.android.fileprovider",
+                        photoFile);
+                takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, photoURI);
+                startActivityForResult(takePictureIntent, REQUEST_IMAGE_CAPTURE);
+            }
+        }
+        return photoFile;
+
     }
     protected void onPause() {
         super.onPause();
@@ -468,30 +513,59 @@ public class MainActivity extends AppCompatActivity
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (requestCode == REQUEST_IMAGE_CAPTURE && resultCode == RESULT_OK) {
-            Uri file = data.getData();
-            String fileLocation = getRealPathFromUri(getApplicationContext(), file);
-            System.out.println(fileLocation);
-            ExifInterface exifInterface = null;
-            try {
-                exifInterface = new ExifInterface(fileLocation);
-
-                Bitmap thumbnail = data.getParcelableExtra("data");
-                int orientation = exifInterface.getAttributeInt(ExifInterface.TAG_ORIENTATION,
-                        ExifInterface.ORIENTATION_UNDEFINED);
-                Bitmap image = PhotoUtil.rotateBitmap(thumbnail, orientation);
-                imgView.setImageBitmap(image);
-                saveUri(file);
-
-                Customer customer = getCustomerLocation();
-                if (customer != null) {
-                    locationName.setText(customer.getName());
-                    city.setSelection(((ArrayAdapter<String>)city.getAdapter()).getPosition(customer.getCity()));
-                    Log.i(TAG, customer.toString());
-                }
-
-            } catch (IOException e) {
-                e.printStackTrace();
+            if (Build.VERSION.SDK_INT > 19) {
+                newOnActivityResult();
+            } else {
+                oldOnActivityResult(data);
             }
+
+        }
+    }
+
+    protected void newOnActivityResult() {
+        ExifInterface exifInterface = null;
+        try {
+            exifInterface = new ExifInterface(photoFile.getAbsoluteFile().getAbsolutePath());
+            int orientation = exifInterface.getAttributeInt(ExifInterface.TAG_ORIENTATION,
+                    ExifInterface.ORIENTATION_UNDEFINED);
+
+            setPic(imgView, photoFile.getAbsolutePath(), orientation);
+
+            Customer customer = getCustomerLocation();
+            if (customer != null) {
+                locationName.setText(customer.getName());
+                city.setSelection(((ArrayAdapter<String>)city.getAdapter()).getPosition(customer.getCity()));
+                Log.i(TAG, customer.toString());
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+    private void oldOnActivityResult(Intent data) {
+        Uri file = data.getData();
+        String fileLocation = getRealPathFromUri(getApplicationContext(), file);
+        System.out.println(fileLocation);
+        ExifInterface exifInterface = null;
+        try {
+            exifInterface = new ExifInterface(fileLocation);
+
+            Bitmap thumbnail = data.getParcelableExtra("data");
+            int orientation = exifInterface.getAttributeInt(ExifInterface.TAG_ORIENTATION,
+                    ExifInterface.ORIENTATION_UNDEFINED);
+            Bitmap image = PhotoUtil.rotateBitmap(thumbnail, orientation);
+            imgView.setImageBitmap(image);
+            saveUri(file);
+
+            Customer customer = getCustomerLocation();
+            if (customer != null) {
+                locationName.setText(customer.getName());
+                city.setSelection(((ArrayAdapter<String>)city.getAdapter()).getPosition(customer.getCity()));
+                Log.i(TAG, customer.toString());
+            }
+
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
 
@@ -521,25 +595,52 @@ public class MainActivity extends AppCompatActivity
             }
         }
     }
-
     protected void saveUri(Uri uri) {
         switch(place) {
             case 1:
-                photoUri1 = uri;
+                photo1.setPhotoUri(uri);
                 break;
             case 2:
-                photoUri2 = uri;
+                photo2.setPhotoUri(uri);
                 break;
             case 3:
-                photoUri3 = uri;
+                photo3.setPhotoUri(uri);
                 break;
             case 4:
-                photoUri4 = uri;
+                photo4.setPhotoUri(uri);
                 break;
         }
     }
 
+    protected void savePhotoLocation(File file) {
+        switch(place) {
+            case 1:
+                photo1.setPhotoFile(file);
+                break;
+            case 2:
+                photo2.setPhotoFile(file);
+                break;
+            case 3:
+                photo3.setPhotoFile(file);
+                break;
+            case 4:
+                photo4.setPhotoFile(file);
+                break;
+        }
+    }
 
+    private File createImageFile() throws IOException {
+        // Create an image file name
+        String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
+        String imageFileName = "JPEG_" + timeStamp + "_";
+        File storageDir = getExternalFilesDir(Environment.DIRECTORY_PICTURES);
+        File image = File.createTempFile(
+                imageFileName,  /* prefix */
+                ".jpg",         /* suffix */
+                storageDir      /* directory */
+        );
+        return image;
+    }
     private File createTempFile() throws IOException {
         // Create an image file name
         String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
@@ -553,59 +654,30 @@ public class MainActivity extends AppCompatActivity
 
         return file;
     }
-    public static Bitmap decodeSampledBitmapFromFile(File file,
-                                                     int reqWidth, int reqHeight) {
+    private void setPic(ImageView view, String photoPath, int orientation) {
+        // Get the dimensions of the View
+        int targetW = view.getWidth();
+        int targetH = view.getHeight();
 
-        // First decode with inJustDecodeBounds=true to check dimensions
-        final BitmapFactory.Options options = new BitmapFactory.Options();
-        options.inJustDecodeBounds = true;
-        BitmapFactory.decodeFile(file.getPath(), options);
+        // Get the dimensions of the bitmap
+        BitmapFactory.Options bmOptions = new BitmapFactory.Options();
+        bmOptions.inJustDecodeBounds = true;
+        BitmapFactory.decodeFile(photoPath, bmOptions);
+        int photoW = bmOptions.outWidth;
+        int photoH = bmOptions.outHeight;
 
-        // Calculate inSampleSize
-        options.inSampleSize = calculateInSampleSize(options, reqWidth, reqHeight);
+        // Determine how much to scale down the image
+        int scaleFactor = Math.min(photoW/targetW, photoH/targetH);
 
-        // Decode bitmap with inSampleSize set
-        options.inJustDecodeBounds = false;
-        return BitmapFactory.decodeFile(file.getPath(), options);
-    }
-    public static int calculateInSampleSize(
-            BitmapFactory.Options options, int reqWidth, int reqHeight) {
-        // Raw height and width of image
-        final int height = options.outHeight;
-        final int width = options.outWidth;
-        int inSampleSize = 1;
+        // Decode the image file into a Bitmap sized to fill the View
+        bmOptions.inJustDecodeBounds = false;
+        bmOptions.inSampleSize = scaleFactor;
+        bmOptions.inPurgeable = true;
 
-        if (height > reqHeight || width > reqWidth) {
+        Bitmap bitmap = BitmapFactory.decodeFile(photoPath, bmOptions);
+        Bitmap image = PhotoUtil.rotateBitmap(bitmap, orientation);
 
-            final int halfHeight = height / 2;
-            final int halfWidth = width / 2;
-
-            // Calculate the largest inSampleSize value that is a power of 2 and keeps both
-            // height and width larger than the requested height and width.
-            while ((halfHeight / inSampleSize) >= reqHeight
-                    && (halfWidth / inSampleSize) >= reqWidth) {
-                inSampleSize *= 2;
-            }
-        }
-
-        return inSampleSize;
-    }
-    public static boolean saveBitmap(Bitmap original, Bitmap.CompressFormat format, int quality, File outFile)
-    {
-        if(original == null)
-            return false;
-
-        try {
-            FileOutputStream out = new FileOutputStream(outFile);
-            boolean result = original.compress(format, quality, out);
-            out.flush();
-            out.close();
-            return result;
-        }
-        catch(Exception e) {
-            Log.d("saveBitmap", e.getMessage(), e);
-        }
-        return false;
+        view.setImageBitmap(image);
     }
     @Override
     public void onSaveInstanceState(Bundle savedInstanceState) {
@@ -613,6 +685,7 @@ public class MainActivity extends AppCompatActivity
         // Save UI state changes to the savedInstanceState.
         // This bundle will be passed to onCreate if the process is
         // killed and restarted.
+/*
         if (img1 != null) {
             Bitmap bitmap1 = ((BitmapDrawable)img1.getDrawable()).getBitmap();
             savedInstanceState.putParcelable("bitmap1", bitmap1);
@@ -629,10 +702,11 @@ public class MainActivity extends AppCompatActivity
             Bitmap bitmap4 = ((BitmapDrawable)img4.getDrawable()).getBitmap();
             savedInstanceState.putParcelable("bitmap4", bitmap4);
         }
-        savedInstanceState.putParcelable("photoUri1", photoUri1);
-        savedInstanceState.putParcelable("photoUri2", photoUri2);
-        savedInstanceState.putParcelable("photoUri3", photoUri3);
-        savedInstanceState.putParcelable("photoUri4", photoUri4);
+*/
+        savedInstanceState.putParcelable("photo1", photo1);
+        savedInstanceState.putParcelable("photo2", photo2);
+        savedInstanceState.putParcelable("photo3", photo3);
+        savedInstanceState.putParcelable("photo4", photo4);
         // etc.
     }
     @Override
