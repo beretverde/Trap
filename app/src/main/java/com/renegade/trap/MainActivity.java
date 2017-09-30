@@ -275,35 +275,31 @@ public class MainActivity extends AppCompatActivity
                     PdfWriter.getInstance(document, os);
                     document.open();
                     int page = 1;
-                    if (photo4.hasPhoto()) {
+                    if (photo4 != null && photo4.hasPhoto()) {
                         document.newPage();
                         document.add(new Paragraph("Invoice"));
                         setPdfHeader(dto.getWorkId(), dto.getCityName(), dto.getLocName(), document);
                         addImageToPage(dto.getView(), document, photo4, page++);
                     }
-                    if (photo3.hasPhoto()) {
+                    if (photo3 != null && photo3.hasPhoto()) {
                         document.newPage();
                         document.add(new Paragraph("Tester"));
                         setPdfHeader(dto.getWorkId(), dto.getCityName(), dto.getLocName(), document);
                         addImageToPage(dto.getView(), document, photo3, page++);
                     }
 
-                    if (photo2.hasPhoto()) {
+                    if (photo2 != null && photo2.hasPhoto()) {
                         document.newPage();
                         document.add(new Paragraph("Trap 2"));
                         setPdfHeader(dto.getWorkId(), dto.getCityName(), dto.getLocName(), document);
                         addImageToPage(dto.getView(), document, photo2, page++);
                     }
-                    if (photo1.hasPhoto()) {
+                    if (photo1 != null && photo1.hasPhoto()) {
                         document.newPage();
                         document.add(new Paragraph("Trap 1"));
                         setPdfHeader(dto.getWorkId(), dto.getCityName(), dto.getLocName(), document);
                         addImageToPage(dto.getView(), document, photo1, page++);
-
-
                     }
-
-
                     document.close();
 
                 } catch (Exception e) {
@@ -335,10 +331,10 @@ public class MainActivity extends AppCompatActivity
 
                 dto.getEmail().putExtra(Intent.EXTRA_STREAM, photos);
 
-                photo1=null;
-                photo2=null;
-                photo3=null;
-                photo4=null;
+                photo1=new PhotoExternals();
+                photo2=new PhotoExternals();
+                photo3=new PhotoExternals();
+                photo4=new PhotoExternals();
 
                 try {
                     if (dto.getEmail().resolveActivity(getPackageManager()) != null) {
