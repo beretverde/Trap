@@ -270,18 +270,23 @@ public class MainActivity extends AppCompatActivity
                 File file = null;
                 OutputStream os;
                 try {
-                    file = createTempFile();
+                    file = createTempFile(dto);
                     os = new FileOutputStream(file);
                     PdfWriter.getInstance(document, os);
                     document.open();
                     int page = 1;
                     if (photo4 != null && photo4.hasPhoto()) {
-                        document.newPage();
+                        if (page > 1) {
+                            document.newPage();
+                        }
                         document.add(new Paragraph("Invoice"));
                         setPdfHeader(dto.getWorkId(), dto.getCityName(), dto.getLocName(), document);
                         addImageToPage(dto.getView(), document, photo4, page++);
                     }
                     if (photo3 != null && photo3.hasPhoto()) {
+                        if (page > 1) {
+                            document.newPage();
+                        }
                         document.newPage();
                         document.add(new Paragraph("Tester"));
                         setPdfHeader(dto.getWorkId(), dto.getCityName(), dto.getLocName(), document);
@@ -289,12 +294,18 @@ public class MainActivity extends AppCompatActivity
                     }
 
                     if (photo2 != null && photo2.hasPhoto()) {
+                        if (page > 1) {
+                            document.newPage();
+                        }
                         document.newPage();
                         document.add(new Paragraph("Trap 2"));
                         setPdfHeader(dto.getWorkId(), dto.getCityName(), dto.getLocName(), document);
                         addImageToPage(dto.getView(), document, photo2, page++);
                     }
                     if (photo1 != null && photo1.hasPhoto()) {
+                        if (page > 1) {
+                            document.newPage();
+                        }
                         document.newPage();
                         document.add(new Paragraph("Trap 1"));
                         setPdfHeader(dto.getWorkId(), dto.getCityName(), dto.getLocName(), document);
@@ -392,14 +403,21 @@ public class MainActivity extends AppCompatActivity
 
                 bitmap = MediaStore.Images.Media.getBitmap(view.getContext().getContentResolver(),photoUri);
             }
+            BitmapFactory.Options bmOptions = new BitmapFactory.Options();
+            bmOptions.inJustDecodeBounds = true;
+            BitmapFactory.decodeFile(fileLocation, bmOptions);
+            int quality = 100;
+            if (bmOptions.outHeight > 2000) {
+                quality = 50;
+            }
+
             int orientation = exifInterface.getAttributeInt(ExifInterface.TAG_ORIENTATION,
                     ExifInterface.ORIENTATION_UNDEFINED);
             Bitmap finalBitmap = PhotoUtil.rotateBitmap(bitmap, orientation);
 
-
             // get input stream
             ByteArrayOutputStream stream = new ByteArrayOutputStream();
-            finalBitmap.compress(Bitmap.CompressFormat.JPEG, 100, stream);
+            finalBitmap.compress(Bitmap.CompressFormat.JPEG, quality, stream);
             Image image = Image.getInstance(stream.toByteArray());
             image.scaleAbsolute(500, 500);
             document.add(image);
@@ -637,17 +655,18 @@ public class MainActivity extends AppCompatActivity
         );
         return image;
     }
-    private File createTempFile() throws IOException {
+    private File createTempFile(PdfInfoDTO dto) throws IOException {
         // Create an image file name
-        String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
-        String fileName = "PDF_" + timeStamp + "_";
-        File storageDir = getExternalFilesDir(Environment.DIRECTORY_PICTURES);
-        File file = File.createTempFile(
-                fileName,  /* prefix */
-                ".pdf",         /* suffix */
-                storageDir      /* directory */
-        );
+        String fileName = dto.getLocName()+"-"+dto.getCityName()+"-"+dto.getWorkId()+".pdf";
 
+        File storageDir = getExternalFilesDir(Environment.DIRECTORY_PICTURES);
+        File file = new File(storageDir, fileName);
+//        File file = File.createTempFile(
+//                fileName,  /* prefix */
+//                ".pdf",         /* suffix */
+//                storageDir      /* directory */
+//        );
+        file.deleteOnExit();
         return file;
     }
     private void setPic(ImageView view, String photoPath, int orientation) {
@@ -681,24 +700,7 @@ public class MainActivity extends AppCompatActivity
         // Save UI state changes to the savedInstanceState.
         // This bundle will be passed to onCreate if the process is
         // killed and restarted.
-/*
-        if (img1 != null) {
-            Bitmap bitmap1 = ((BitmapDrawable)img1.getDrawable()).getBitmap();
-            savedInstanceState.putParcelable("bitmap1", bitmap1);
-        }
-        if (img2 != null) {
-            Bitmap bitmap2 = ((BitmapDrawable)img2.getDrawable()).getBitmap();
-            savedInstanceState.putParcelable("bitmap2", bitmap2);
-        }
-        if (img3 != null) {
-            Bitmap bitmap3 = ((BitmapDrawable)img3.getDrawable()).getBitmap();
-            savedInstanceState.putParcelable("bitmap3", bitmap3);
-        }
-        if (img4 != null) {
-            Bitmap bitmap4 = ((BitmapDrawable)img4.getDrawable()).getBitmap();
-            savedInstanceState.putParcelable("bitmap4", bitmap4);
-        }
-*/
+
         savedInstanceState.putParcelable("photo1", photo1);
         savedInstanceState.putParcelable("photo2", photo2);
         savedInstanceState.putParcelable("photo3", photo3);
