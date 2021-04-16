@@ -1,1 +1,1 @@
-Trap test
+Trap removed
